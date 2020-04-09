@@ -10,7 +10,7 @@ class Aglomerado:
     def __init__(self, area, densidade_populacional, tempo_analise, populacao_ativa, numero_terminais_educacao,
                  numero_terminais_saude, numero_terminais_comercio, numero_terminais_governanca,
                  numero_terminais_seguranca, proporcao_final_terminais_heavy, taxa_crescimento_terminais_heavy,
-                 proporcao_final_usuario_internet, taxa_crescimento_usuarios_internet):
+                 proporcao_final_usuario_internet, taxa_crescimento_usuarios_internet, taxa_usuarios_ativos):
 
         self._area = area
         self._densidade_populacional = densidade_populacional
@@ -25,6 +25,7 @@ class Aglomerado:
         self._taxa_crescimento_terminais_heavy = taxa_crescimento_terminais_heavy
         self._proporcao_final_usuario_internet = proporcao_final_usuario_internet
         self._taxa_crescimento_usuarios_internet = taxa_crescimento_usuarios_internet
+        self._taxa_usuarios_ativos = taxa_usuarios_ativos
 
         self._demanda_trafego = 0.0
         self._densidade_usuarios = 0.0
@@ -65,7 +66,7 @@ class Aglomerado:
         self._demanda_aplicacoes = demanda_aplicacoes/self._area
 
     def calcula_densidade_usuarios(self):
-        densidade_usarios = get_gompertz(self._proporcao_final_usuario_internet, self._taxa_crescimento_usuarios_internet, self._tempo_analise)
+        densidade_usarios = get_gompertz(self._proporcao_final_usuario_internet, 5, self._taxa_crescimento_usuarios_internet, self._tempo_analise)
         self._densidade_usuarios = densidade_usarios * self._densidade_populacional * self._populacao_ativa
 
     def calcula_trafego_terminal(self):
@@ -73,7 +74,7 @@ class Aglomerado:
         r_j = np.zeros((3, self._tempo_analise))
         rs_j = np.zeros((3, self._tempo_analise))
 
-        heavy_users = get_gompertz(self._proporcao_final_terminais_heavy, self._taxa_crescimento_terminais_heavy, self._tempo_analise)
+        heavy_users = get_gompertz(self._proporcao_final_terminais_heavy, 5, self._taxa_crescimento_terminais_heavy, self._tempo_analise)
         heavy_users = np.array([heavy_users])
         ordinary_users = 1 - heavy_users
 
@@ -98,7 +99,7 @@ class Aglomerado:
         self._demanda_trafego_terminais = np.sum(rs_j, axis=0)
 
     def calcula_demada_usuarios(self):
-        self._demanda_usuarios = self._densidade_usuarios * self._demanda_trafego_terminais
+        self._demanda_usuarios = self._densidade_usuarios * self._taxa_usuarios_ativos *self._demanda_trafego_terminais
 
     def calcula_demanda_trafego(self):
         self.calcula_demanda_aplicacoes()
@@ -126,8 +127,29 @@ class Aglomerado:
         print('Demanda de Trafego')
         print(self._demanda_trafego)
 
-        time = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-        plt.bar(time, self._demanda_trafego)
-        plt.xlabel('Anos (t)')
+        time = np.arange(self._tempo_analise)
+
+        fig, ax1 = plt.subplots()
+
+        color = 'tab:red'
+        ax1.set_xlabel('Período de Análise (t)')
+        ax1.set_ylabel('Demanda de Tráfego [Mbps/km2]', color=color)
+        ax1.plot(time, self._demanda_trafego, '-.', color=color)
+        ax1.grid(linestyle=':')
+        ax1.tick_params(axis='y', labelcolor=color)
+
+        ax2 = ax1.twinx()
+
+        color = 'tab:blue'
+        ax2.set_ylabel('Densidade de Usuários [usuários/km2]', color=color)
+        ax2.plot(time, self._densidade_usuarios, '-*', color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        fig.tight_layout()
+        plt.show()
+
+        plt.plot(self._densidade_usuarios, self._demanda_trafego, '-*')
+        plt.xlabel('Densidade de Usuários [usuários/km2]')
         plt.ylabel('Demanda de Tráfego [Mbps/km2]')
+        plt.grid(linestyle=':')
         plt.show()
