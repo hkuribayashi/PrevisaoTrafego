@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from aplicacacao import Aplicacao
-from util import get_gompertz
+from library.entities.Aplicacacao import Aplicacao
+from library.util.Util import get_gompertz
 
 
 class Aglomerado:
@@ -51,19 +51,12 @@ class Aglomerado:
         return self._demanda_trafego
 
     def calcula_demanda_aplicacoes(self):
-        demanda_aplicacoes = 0.0
-
-        r_ead = Aplicacao.streaming_sd.value['bandwidth'] * Aplicacao.streaming_sd.value['compression_factor']
-        r_wb = Aplicacao.web_browsing.value['bandwidth'] * Aplicacao.web_browsing.value['compression_factor']
-        r_m = Aplicacao.streaming_hd.value['bandwidth'] * Aplicacao.streaming_hd.value['compression_factor']
-
-        demanda_aplicacoes += self._numero_terminais_educacao * (r_ead + r_wb)
-        demanda_aplicacoes += self._numero_terminais_saude * r_wb + r_m
-        demanda_aplicacoes += self._numero_terminais_comercio * r_wb
-        demanda_aplicacoes += self._numero_terminais_governanca * r_wb + r_m
-        demanda_aplicacoes += self._numero_terminais_seguranca * r_wb
-
-        self._demanda_aplicacoes = demanda_aplicacoes/self._area
+        demanda_aplicacoes = np.zeros(self._tempo_analise)
+        for app in Aplicacao:
+            c = get_gompertz(1.0, app.value['start_adoption'], app.value['adoption_rate'], self._tempo_analise)
+            c = (app.value['estimated_quantity']/self._area) * c
+            demanda_aplicacoes += c
+        self._demanda_aplicacoes = demanda_aplicacoes
 
     def calcula_densidade_usuarios(self):
         densidade_usarios = get_gompertz(self._proporcao_final_usuario_internet, 5, self._taxa_crescimento_usuarios_internet, self._tempo_analise)

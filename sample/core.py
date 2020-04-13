@@ -1,4 +1,4 @@
-from aglomerado import Aglomerado
+from library.entities.Aglomerado import Aglomerado
 
 
 # area, densidade_populacional, tempo_analise, populacao_ativa, numero_terminais_educacao,
