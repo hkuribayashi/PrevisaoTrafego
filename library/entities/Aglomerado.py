@@ -19,12 +19,12 @@ class Aglomerado:
         self._numero_terminais_comercio = numero_terminais_comercio
         self._numero_terminais_governanca = numero_terminais_governanca
         self._numero_terminais_seguranca = numero_terminais_seguranca
-        self._populacao_ativa = populacao_ativa
+        self._populacao_ativa = populacao_ativa # representa a parcela economicamente ativa da população
         self._tempo_analise = tempo_analise
-        self._proporcao_final_terminais_heavy = proporcao_final_terminais_heavy
-        self._taxa_crescimento_terminais_heavy = taxa_crescimento_terminais_heavy
-        self._proporcao_final_usuario_internet = proporcao_final_usuario_internet
-        self._taxa_crescimento_usuarios_internet = taxa_crescimento_usuarios_internet
+        self._proporcao_final_terminais_heavy = proporcao_final_terminais_heavy # mi/determina a taxa final de adoção de terminais do tipo heavy
+        self._taxa_crescimento_terminais_heavy = taxa_crescimento_terminais_heavy # gamma/taxa de adoção dos terminais do tipo j
+        self._proporcao_final_usuario_internet = proporcao_final_usuario_internet #mu/determina a taxa final de adoção de internet por usuário
+        self._taxa_crescimento_usuarios_internet = taxa_crescimento_usuarios_internet #gamma/taxa de adocao de internet
         self._taxa_usuarios_ativos = taxa_usuarios_ativos
 
         self._demanda_trafego = 0.0
@@ -68,15 +68,15 @@ class Aglomerado:
         rs_j = np.zeros((3, self._tempo_analise))
 
         heavy_users = get_gompertz(self._proporcao_final_terminais_heavy, 5, self._taxa_crescimento_terminais_heavy, self._tempo_analise)
-        heavy_users = np.array([heavy_users])
-        ordinary_users = 1 - heavy_users
+        heavy_users = np.array([heavy_users]) # ela era um array e converteu ele em uma matriz de uma linha
+        ordinary_users = 1 - heavy_users # ele cria uma matriz ordinary para receber o resultado da subtracao entre 1 e o primeiro, segundo... elemento da matriz heavy e coloca o resultado na respectiva posicao da matriz ordinary
 
         self._user_fraction = np.concatenate((heavy_users, ordinary_users), axis=0)
 
         # Linhas: r_heavy/rordinary; Colunas: PC/Tablets/Smartphones
         # Valores expressos em Mbps
         # demanda_trafego_terminais = np.array([[0.125, 0.06244444, 0.01562222], [0.031, 0.00780556, 0.00195278]])
-        demanda_trafego_terminais = np.array([[25.0, 5.0, 2.0], [3.125, 0.625, 0.25]])
+        demanda_trafego_terminais = np.array([[25.0, 5.0, 2.0], [3.125, 0.625, 0.25]]) # valores aumentados
 
         for i in range(self._tempo_analise):
             r_j[:, i] = np.asmatrix(self._user_fraction[:, i].T).dot(demanda_trafego_terminais)
@@ -89,7 +89,7 @@ class Aglomerado:
         for i in range(self._tempo_analise):
             rs_j[:, i] = np.multiply(r_j[:, i], s_j)
 
-        self._demanda_trafego_terminais = np.sum(rs_j, axis=0)
+        self._demanda_trafego_terminais = np.sum(rs_j, axis=0) # achata somando as linhas, resultado em 1 linha e 15 colunas
 
     def calcula_demada_usuarios(self):
         self._demanda_usuarios = self._densidade_usuarios * self._taxa_usuarios_ativos *self._demanda_trafego_terminais
@@ -99,7 +99,7 @@ class Aglomerado:
         self.calcula_densidade_usuarios()
         self.calcula_trafego_terminal()
         self.calcula_demada_usuarios()
-        self._demanda_trafego = np.add(self._demanda_aplicacoes, self._demanda_usuarios)
+        self._demanda_trafego = np.add(self._demanda_aplicacoes, self._demanda_usuarios) # faco um chuveirinho somando
 
     def debug(self):
         print('User Fraction')
