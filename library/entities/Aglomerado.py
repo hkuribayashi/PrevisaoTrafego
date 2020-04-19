@@ -109,26 +109,54 @@ class Aglomerado:
         self.calcula_demada_usuarios()
         self._demanda_trafego = np.add(self._demanda_aplicacoes, self._demanda_usuarios)  # faco um chuveirinho somando
 
+    def capacidade_rede_acesso(self):
+        capacidade_atendimento = 0.0
+        for c in self._lista_bs:
+            capacidade_atendimento += (c.tipo_BS.capacidade * c.tipo_BS.setores)
+        return capacidade_atendimento
+
+    def checa_possui_bs_atualizavel(self, t):
+        result = False
+        for b in self._lista_bs:
+            if t <= 3 and b.tipo_BS.tecnologia == '4G':
+                continue
+            result = result or b.tipo_BS.atualizavel
+        return result
+
+    def upgrade_bs(self, t):
+        for b in self._lista_bs:
+            print('Capacidade antes da Atualização: {} Mbps (BS com tecnologia {})'.format(b.tipo_BS.capacidade * b.tipo_BS.setores, b.tipo_BS.tecnologia))
+            if t <= 3 and b.tipo_BS.tecnologia == '4G':
+                continue
+            b.upgrade()
+            print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(b.tipo_BS.capacidade * b.tipo_BS.setores, b.tipo_BS.tecnologia))
+
     def calcula_capacidade_rede_acesso(self):
-        for dt in np.nditer(self._demanda_trafego):
+        for indx, dt in enumerate(self._demanda_trafego):
             demanda = dt * self._area
+            print('Ano (t): {}'.format(indx))
             print('Demanda de Trafego: {} Mbps'.format(demanda))
-            capacidade_atendimento = 0.0
-            for c in self._lista_bs:
-                capacidade_atendimento += c.tipo_BS.capacidade
+
+            capacidade_atendimento = self.capacidade_rede_acesso()
             print('Capacidade de Atendimento: {} Mbps'.format(capacidade_atendimento))
+
             capacidade_expansao = demanda - capacidade_atendimento
             if capacidade_expansao >= 0:
                 print('Atualização em {} Mbps'.format(capacidade_expansao))
-                print('Inicia upgrade de BSs')
-                for b in self._lista_bs:
-                    print('Capacidade BS: {}'.format(b.tipo_BS.capacidade))
-                    b.upgrade()
-                    print('Capacidade BS após UPgrade: {}'.format(b.tipo_BS.capacidade))
+                teste_condicao = self.checa_possui_bs_atualizavel(indx)
+                print('É possível o upgrade de BSs ? {}'.format(teste_condicao))
+                if teste_condicao is True:
+                    print('Executa atualizacoes de BSs')
+                    self.upgrade_bs(indx)
+                    capacidade_atendimento = self.capacidade_rede_acesso()
+                    capacidade_expansao = demanda - capacidade_atendimento
+                    if capacidade_expansao >= 0:
+                        print('Realiza a implantação de BSs novas')
+                else:
+                    print('Realiza a implantação de BSs novas')
             else:
                 print('Não precisa ser atualizado')
             print('\n')
-
 
     def debug(self):
         print('User Fraction')
