@@ -1,12 +1,14 @@
+from library.hetnet.AtualizacaoBS import AtualizacaoBS
 from library.hetnet.BSType import BSType
 
 
 class BS:
-    def __init__(self, id_, operadora, tipo, agrupamento, ):
+    def __init__(self, id_, operadora, tipo, existenncia_previa=True):
         self._id = id_
         self._operadora = operadora
         self._tipo_BS = tipo
-        self._agrupamento = agrupamento
+        self._existencia_previa = existenncia_previa
+        self._atualizacoes = list()
 
     @property
     def id(self):
@@ -21,8 +23,8 @@ class BS:
         return self._tipo_BS
 
     @property
-    def agrupamento(self):
-        return self._agrupamento
+    def existencia_previa(self):
+        return self._existencia_previa
 
     @id.setter
     def id(self, id_):
@@ -45,27 +47,28 @@ class BS:
         else:
             self._tipo_BS = tipo
 
-    @agrupamento.setter
-    def agrupamento(self, agrupamento):
-        if agrupamento is None:
-            raise RuntimeError('[ERROR]')
-        else:
-            self._agrupamento = agrupamento
+    @existencia_previa.setter
+    def existencia_previa(self, existencia_previa):
+        self._existencia_previa = existencia_previa
 
     def upgrade(self):
         if self._tipo_BS.atualizavel is True:
             if self._tipo_BS.ambiente == 'outdoor':
                 if self._tipo_BS.tecnologia == '2G':
                     self._tipo_BS = BSType.MACRO_3G
+                    self._atualizacoes.append(AtualizacaoBS.ATUALIZACAO_2G_PARA_3G)
                 else:
                     if self._tipo_BS.tecnologia == '3G':
                         self._tipo_BS = BSType.MACRO_4G
+                        self._atualizacoes.append(AtualizacaoBS.ATUALIZACAO_3G_PARA_4G)
                     else:
                         if self._tipo_BS.tecnologia == '4G':
                             self._tipo_BS = BSType.MACRO_5G
+                            self._atualizacoes.append(AtualizacaoBS.ATUALIZACAO_4G_PARA_5G)
             else:
                 if self._tipo_BS.tecnologia == '4G':
                     self._tipo_BS = BSType.FEMTO_5G
+                    self._atualizacoes.append(AtualizacaoBS.ATUALIZACAO_4G_PARA_5G)
             return True
         else:
             return False

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from library.entities.Aplicacacao import Aplicacao
+from library.hetnet.BSType import BSType
 from library.util.Util import get_gompertz
 
 
@@ -131,6 +132,22 @@ class Aglomerado:
             b.upgrade()
             print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(b.tipo_BS.capacidade * b.tipo_BS.setores, b.tipo_BS.tecnologia))
 
+    def implatacao_novas_bs(self):
+        cobertura_existente = 0.0
+        for b in self._lista_bs:
+            cobertura_existente += b.tipo_BS.cobertura
+        area_descoberta = self._area - cobertura_existente
+        if area_descoberta >= 0:
+            print('Existência de área a ser coberta')
+            print('Inclusão de BSs por Cobertura')
+            n_BS_macro = area_descoberta/BSType.MACRO_4G.cobertura
+            print('Necessário implantar {} BSs'.format(n_BS_macro))
+            n_BS_femto = area_descoberta/BSType.FEMTO_4G.cobertura
+            print('Necessário implantar {} BSs'.format(n_BS_femto))
+        else:
+            print('area ja totalmente coberta')
+            print('Necessária inclusão de BSs por Capacidade')
+
     def calcula_capacidade_rede_acesso(self):
         for indx, dt in enumerate(self._demanda_trafego):
             demanda = dt * self._area
@@ -152,8 +169,10 @@ class Aglomerado:
                     capacidade_expansao = demanda - capacidade_atendimento
                     if capacidade_expansao >= 0:
                         print('Realiza a implantação de BSs novas')
+                        self.implatacao_novas_bs()
                 else:
                     print('Realiza a implantação de BSs novas')
+                    self.implatacao_novas_bs()
             else:
                 print('Não precisa ser atualizado')
             print('\n')
