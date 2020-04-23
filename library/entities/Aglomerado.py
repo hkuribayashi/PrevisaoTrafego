@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from library.entities.Aplicacacao import AplicacaoFaroSede
-from library.hetnet import Operadora
+from library.hetnet.TrafegoUsuariosMoveis import TrafegoUsuariosMoveis as TUM
 from library.hetnet.BSType import BSType
 from library.hetnet.BS import BS
 from library.util.Util import get_gompertz
@@ -10,70 +10,77 @@ from library.util.Util import get_gompertz
 
 class Aglomerado:
 
-    def __init__(self, area, densidade_populacional, tempo_analise, populacao_ativa, proporcao_final_terminais_heavy,
-                 taxa_crescimento_terminais_heavy, proporcao_final_usuario_internet, taxa_crescimento_usuarios_internet,
-                 taxa_usuarios_ativos):
+    def __init__(self, id_, total_habitantes, area_aglomerado, total_agencias_bancarias, total_domicilios,
+                 percentual_populacao_ativa):
+        self._id = id_
+        self._total_habitantes = total_habitantes
+        self._area_aglomerado = area_aglomerado
+        self._total_agencias_bancarias = total_agencias_bancarias
+        self._total_domicilios = total_domicilios
+        self._densidade_demografica = total_habitantes/area_aglomerado
+        self._percentual_populacao_ativa = percentual_populacao_ativa
+        self._total_pop_ativa = self._percentual_populacao_ativa * self._total_habitantes
+        self._total_pop_inativa = self._total_habitantes - self._total_pop_ativa
 
-        self._area = area
-        self._densidade_populacional = densidade_populacional
-        self._populacao_ativa = populacao_ativa  # representa a parcela economicamente ativa da população
-        self._tempo_analise = tempo_analise
-        self._proporcao_final_terminais_heavy = proporcao_final_terminais_heavy  # mi/determina a taxa final de adoção de terminais do tipo heavy
-        self._taxa_crescimento_terminais_heavy = taxa_crescimento_terminais_heavy  # gamma/taxa de adoção dos terminais do tipo j
-        self._proporcao_final_usuario_internet = proporcao_final_usuario_internet  # mu/determina a taxa final de adoção de internet por usuário
-        self._taxa_crescimento_usuarios_internet = taxa_crescimento_usuarios_internet  # gamma/taxa de adocao de internet
-        self._taxa_usuarios_ativos = taxa_usuarios_ativos
-        self._lista_bs = list()
+        self._total_servidores_publicos = 0.0
+        self._total_servidores_publicos_saude = 0.0
+        self._total_trabalhadores_informais = 0.0
+        self._total_veiculos = 0.0
+        self._tempo_analise = 0
 
+        self._percentual_habitantes = 0.0
         self._demanda_trafego = 0.0
         self._densidade_usuarios = 0.0
         self._demanda_trafego_terminais = 0.0
         self._demanda_usuarios = 0.0
         self._demanda_aplicacoes = 0.0
         self._user_fraction = 0.0
+        self._lista_bs = list()
 
     @property
-    def area(self):
-        return self._area
+    def total_habitantes(self):
+        return self._total_habitantes
 
     @property
-    def densidade_populacional(self):
-        return self._densidade_populacional
+    def total_pop_ativa(self):
+        return self._total_pop_ativa
 
-    @property
-    def populacao_ativa(self):
-        return self._populacao_ativa
 
-    @property
-    def demanda_trafego(self):
-        return self._demanda_trafego
 
-    @property
-    def lista_bs(self):
-        return self._lista_bs
+    def adicionar_BS(self, BS):
+        self._lista_bs.append(BS)
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self._tempo_analise)
         for app in AplicacaoFaroSede:
             c = get_gompertz(app.mu, app.beta, app.gamma, self._tempo_analise)
-            c = (app.qtd_terminais / self._area) * app.alpha * c
+            c = (app.qtd_terminais / self._area_aglomerado) * app.alpha * c
             demanda_aplicacoes += c
         self._demanda_aplicacoes = demanda_aplicacoes
 
     def calcula_densidade_usuarios(self):
-        densidade_usarios = get_gompertz(self._proporcao_final_usuario_internet, 5,
-                                         self._taxa_crescimento_usuarios_internet, self._tempo_analise)
-        self._densidade_usuarios = densidade_usarios * self._densidade_populacional * self._populacao_ativa
+        densidade_usarios = get_gompertz(TUM.CONFIG_DEFAULT.proporcao_final_usuario_internet,
+                                         TUM.CONFIG_DEFAULT.inicio_adocao,
+                                         TUM.CONFIG_DEFAULT.taxa_crescimento_usuarios_internet,
+                                         self._tempo_analise)
+        self._densidade_usuarios = densidade_usarios * self._densidade_demografica * self._percentual_populacao_ativa
 
     def calcula_trafego_terminal(self):
         # Inicializa duas matrizes com 3 linhas (tipos de terminais) x 'tempo_analise' colunas
         r_j = np.zeros((3, self._tempo_analise))
         rs_j = np.zeros((3, self._tempo_analise))
 
-        heavy_users = get_gompertz(self._proporcao_final_terminais_heavy, 5, self._taxa_crescimento_terminais_heavy,
+        heavy_users = get_gompertz(TUM.CONFIG_DEFAULT.proporcao_final_terminais_heavy,
+                                   TUM.CONFIG_DEFAULT.inicio_adocao,
+                                   TUM.CONFIG_DEFAULT.taxa_crescimento_terminais_heavy,
                                    self._tempo_analise)
-        heavy_users = np.array([heavy_users])  # ela era um array e converteu ele em uma matriz de uma linha
-        ordinary_users = 1 - heavy_users  # ele cria uma matriz ordinary para receber o resultado da subtracao entre 1 e o primeiro, segundo... elemento da matriz heavy e coloca o resultado na respectiva posicao da matriz ordinary
+
+        # ela era um array e converteu ele em uma matriz de uma linha
+        heavy_users = np.array([heavy_users])
+
+        # ele cria uma matriz ordinary para receber o resultado da subtracao entre 1 e o primeiro, segundo...
+        # elemento da matriz heavy e coloca o resultado na respectiva posicao da matriz ordinary
+        ordinary_users = 1 - heavy_users
 
         self._user_fraction = np.concatenate((heavy_users, ordinary_users), axis=0)
 
@@ -97,7 +104,8 @@ class Aglomerado:
                                                  axis=0)  # achata somando as linhas, resultado em 1 linha e 15 colunas
 
     def calcula_demada_usuarios(self):
-        self._demanda_usuarios = self._densidade_usuarios * self._taxa_usuarios_ativos * self._demanda_trafego_terminais
+        self._demanda_usuarios = self._densidade_usuarios * TUM.CONFIG_DEFAULT.taxa_usuarios_ativos \
+                                 * self._demanda_trafego_terminais
 
     def calcula_demanda_trafego(self):
         self.calcula_demanda_aplicacoes()
@@ -140,7 +148,7 @@ class Aglomerado:
         cobertura_existente = 0.0
         for b in self._lista_bs:
             cobertura_existente += b.tipo_BS.cobertura
-        area_descoberta = self._area - cobertura_existente
+        area_descoberta = self._area_aglomerado - cobertura_existente
         if area_descoberta >= 0:
             print('Existência de área a ser coberta')
             print('Inclusão de BSs por Cobertura')
@@ -156,18 +164,18 @@ class Aglomerado:
                 n_BS_macro = np.ceil(capacidade_expansao / (BSType.MACRO_4G.capacidade * BSType.MACRO_4G.setores))
                 print('Implantar {} BSs com tecnologia {}'.format(n_BS_macro, BSType.MACRO_4G.tecnologia))
                 for nb in range(int(n_BS_macro)):
-                    nova_bs = BS(0, Operadora.operadora1, BSType.MACRO_4G, False)
+                    nova_bs = BS(BSType.MACRO_4G, False)
                     self._lista_bs.append(nova_bs)
             else:
                 n_BS_macro = np.ceil(capacidade_expansao / (BSType.MACRO_5G.capacidade * BSType.MACRO_5G.setores))
                 print('Implantar {} BSs com tecnologia {}'.format(n_BS_macro, BSType.MACRO_5G.tecnologia))
                 for nb in range(int(n_BS_macro)):
-                    nova_bs = BS(0, Operadora.operadora1, BSType.MACRO_4G, False)
+                    nova_bs = BS(BSType.MACRO_4G, False)
                     self._lista_bs.append(nova_bs)
 
-    def calcula_capacidade_rede_acesso(self):
+    def calcula_dimensionamento_rede_acesso(self):
         for indx, dt in enumerate(self._demanda_trafego):
-            demanda = dt * self._area
+            demanda = dt * self._area_aglomerado
             print('Ano (t): {}'.format(indx))
             print('Demanda de Trafego: {} Mbps'.format(demanda))
 
@@ -193,49 +201,3 @@ class Aglomerado:
             else:
                 print('Não precisa ser atualizado')
             print('\n')
-
-    def debug(self):
-        print('User Fraction')
-        print(self._user_fraction)
-        print('\n')
-        print('Densidade Usuarios')
-        print(self._densidade_usuarios)
-        print('\n')
-        print('Demanda Tráfego por Terminais')
-        print(self._demanda_trafego_terminais)
-        print('\n')
-        print('Demanda de Usuários de Internet')
-        print(self._demanda_usuarios)
-        print('\n')
-        print('Demanda Aplicações')
-        print(self._demanda_aplicacoes)
-        print('\n')
-        print('Demanda de Trafego')
-        print(self._demanda_trafego)
-
-        time = np.arange(self._tempo_analise)
-
-        fig, ax1 = plt.subplots()
-
-        color = 'tab:red'
-        ax1.set_xlabel('Período de Análise (t)')
-        ax1.set_ylabel('Demanda de Tráfego [Mbps/km2]', color=color)
-        ax1.plot(time, self._demanda_trafego, '-.', color=color)
-        ax1.grid(linestyle=':')
-        ax1.tick_params(axis='y', labelcolor=color)
-
-        ax2 = ax1.twinx()
-
-        color = 'tab:blue'
-        ax2.set_ylabel('Densidade de Usuários [usuários/km2]', color=color)
-        ax2.plot(time, self._densidade_usuarios, '-*', color=color)
-        ax2.tick_params(axis='y', labelcolor=color)
-
-        fig.tight_layout()
-        plt.show()
-
-        plt.plot(self._densidade_usuarios, self._demanda_trafego, '-*')
-        plt.xlabel('Densidade de Usuários [usuários/km2]')
-        plt.ylabel('Demanda de Tráfego [Mbps/km2]')
-        plt.grid(linestyle=':')
-        plt.show()

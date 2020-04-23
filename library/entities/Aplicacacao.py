@@ -14,7 +14,7 @@ class AplicacaoFaroSede(Enum):
     E_GOV_7 = (7, 'Navegação Web', 2.0, 1.0, 5.0, 0.55, 0.16, 396.0)
 
     E_FINANCE_8 = (8, 'Caixas Eletrônicos', 2.0, 1.0, 5.0, 0.55, 0.16, 10.0)
-    E_FINANCE_9 = (9, 'Aplicações Financeiras', '2.0', 1.0, 5.0, 0.55, 0.16, 2470.0)
+    E_FINANCE_9 = (9, 'Aplicações Financeiras', 2.0, 1.0, 5.0, 0.55, 0.16, 2470.0)
 
     IOT_10 = (10, 'Smart water measurement', 0.1, 10.0, 15, 0.55, 1.0, 1063.0)
     IOT_11 = (11, 'Smart electricity measurement', 0.1, 1.0, 15.0, 0.55, 1.0, 1063.0)

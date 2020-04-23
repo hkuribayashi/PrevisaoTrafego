@@ -3,9 +3,8 @@ from library.hetnet.BSType import BSType
 
 
 class BS:
-    def __init__(self, id_, operadora, tipo, existenncia_previa=True):
+    def __init__(self, id_, tipo, existenncia_previa=True):
         self._id = id_
-        self._operadora = operadora
         self._tipo_BS = tipo
         self._existencia_previa = existenncia_previa
         self._atualizacoes = list()
@@ -15,41 +14,12 @@ class BS:
         return self._id
 
     @property
-    def operadora(self):
-        return self._operadora
-
-    @property
     def tipo_BS(self):
         return self._tipo_BS
 
     @property
     def existencia_previa(self):
         return self._existencia_previa
-
-    @id.setter
-    def id(self, id_):
-        if id_ is None:
-            raise RuntimeError('[ERROR]')
-        else:
-            self._id = id_
-
-    @operadora.setter
-    def operadora(self, operadora):
-        if operadora is None:
-            raise RuntimeError('[ERROR]')
-        else:
-            self._operadora = operadora
-
-    @tipo_BS.setter
-    def tipo_BS(self, tipo):
-        if tipo is None:
-            raise RuntimeError('[ERROR]')
-        else:
-            self._tipo_BS = tipo
-
-    @existencia_previa.setter
-    def existencia_previa(self, existencia_previa):
-        self._existencia_previa = existencia_previa
 
     def upgrade(self):
         if self._tipo_BS.atualizavel is True:
