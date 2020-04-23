@@ -1,2 +1,2 @@
 from .Aglomerado import Aglomerado
-from .Aplicacacao import Aplicacao
+from .Aplicacacao import AplicacaoFaroSede

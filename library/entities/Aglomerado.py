@@ -1,25 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from library.entities.Aplicacacao import Aplicacao
+from library.entities.Aplicacacao import AplicacaoFaroSede
+from library.hetnet import Operadora
 from library.hetnet.BSType import BSType
+from library.hetnet.BS import BS
 from library.util.Util import get_gompertz
 
 
 class Aglomerado:
 
-    def __init__(self, area, densidade_populacional, tempo_analise, populacao_ativa, numero_terminais_educacao,
-                 numero_terminais_saude, numero_terminais_comercio, numero_terminais_governanca,
-                 numero_terminais_seguranca, proporcao_final_terminais_heavy, taxa_crescimento_terminais_heavy,
-                 proporcao_final_usuario_internet, taxa_crescimento_usuarios_internet, taxa_usuarios_ativos):
+    def __init__(self, area, densidade_populacional, tempo_analise, populacao_ativa, proporcao_final_terminais_heavy,
+                 taxa_crescimento_terminais_heavy, proporcao_final_usuario_internet, taxa_crescimento_usuarios_internet,
+                 taxa_usuarios_ativos):
 
         self._area = area
         self._densidade_populacional = densidade_populacional
-        self._numero_terminais_educacao = numero_terminais_educacao
-        self._numero_terminais_saude = numero_terminais_saude
-        self._numero_terminais_comercio = numero_terminais_comercio
-        self._numero_terminais_governanca = numero_terminais_governanca
-        self._numero_terminais_seguranca = numero_terminais_seguranca
         self._populacao_ativa = populacao_ativa  # representa a parcela economicamente ativa da população
         self._tempo_analise = tempo_analise
         self._proporcao_final_terminais_heavy = proporcao_final_terminais_heavy  # mi/determina a taxa final de adoção de terminais do tipo heavy
@@ -58,9 +54,9 @@ class Aglomerado:
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self._tempo_analise)
-        for app in Aplicacao:
-            c = get_gompertz(1.0, app.value['start_adoption'], app.value['adoption_rate'], self._tempo_analise)
-            c = (app.value['estimated_quantity'] / self._area) * c
+        for app in AplicacaoFaroSede:
+            c = get_gompertz(app.mu, app.beta, app.gamma, self._tempo_analise)
+            c = (app.qtd_terminais / self._area) * app.alpha * c
             demanda_aplicacoes += c
         self._demanda_aplicacoes = demanda_aplicacoes
 
@@ -124,15 +120,23 @@ class Aglomerado:
             result = result or b.tipo_BS.atualizavel
         return result
 
-    def upgrade_bs(self, t):
+    def upgrade_bs(self, t, capacidade_expansao):
+        capacidade_expandida_acumulada = 0.0
         for b in self._lista_bs:
-            print('Capacidade antes da Atualização: {} Mbps (BS com tecnologia {})'.format(b.tipo_BS.capacidade * b.tipo_BS.setores, b.tipo_BS.tecnologia))
+            capacidade_antes = b.tipo_BS.capacidade * b.tipo_BS.setores
+            print('Capacidade antes da Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_antes,
+                                                                                           b.tipo_BS.tecnologia))
             if t <= 3 and b.tipo_BS.tecnologia == '4G':
                 continue
             b.upgrade()
-            print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(b.tipo_BS.capacidade * b.tipo_BS.setores, b.tipo_BS.tecnologia))
+            capacidade_depois = b.tipo_BS.capacidade * b.tipo_BS.setores
+            print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_depois,
+                                                                                       b.tipo_BS.tecnologia))
+            capacidade_expandida_acumulada += (capacidade_depois - capacidade_antes)
+            if (capacidade_expandida_acumulada > capacidade_expansao):
+                break
 
-    def implatacao_novas_bs(self):
+    def implatacao_novas_bs(self, t, capacidade_expansao):
         cobertura_existente = 0.0
         for b in self._lista_bs:
             cobertura_existente += b.tipo_BS.cobertura
@@ -140,13 +144,26 @@ class Aglomerado:
         if area_descoberta >= 0:
             print('Existência de área a ser coberta')
             print('Inclusão de BSs por Cobertura')
-            n_BS_macro = area_descoberta/BSType.MACRO_4G.cobertura
+            n_BS_macro = area_descoberta / BSType.MACRO_4G.cobertura
             print('Necessário implantar {} BSs'.format(n_BS_macro))
-            n_BS_femto = area_descoberta/BSType.FEMTO_4G.cobertura
+            n_BS_femto = area_descoberta / BSType.FEMTO_4G.cobertura
             print('Necessário implantar {} BSs'.format(n_BS_femto))
         else:
-            print('area ja totalmente coberta')
-            print('Necessária inclusão de BSs por Capacidade')
+            print('Area já totalmente coberta')
+            print('Necessária inclusão de BSs por Capacidade em {} Mbps'.format(capacidade_expansao))
+            print('Estratégia 1: Macro BS only')
+            if t <= 3:
+                n_BS_macro = np.ceil(capacidade_expansao / (BSType.MACRO_4G.capacidade * BSType.MACRO_4G.setores))
+                print('Implantar {} BSs com tecnologia {}'.format(n_BS_macro, BSType.MACRO_4G.tecnologia))
+                for nb in range(int(n_BS_macro)):
+                    nova_bs = BS(0, Operadora.operadora1, BSType.MACRO_4G, False)
+                    self._lista_bs.append(nova_bs)
+            else:
+                n_BS_macro = np.ceil(capacidade_expansao / (BSType.MACRO_5G.capacidade * BSType.MACRO_5G.setores))
+                print('Implantar {} BSs com tecnologia {}'.format(n_BS_macro, BSType.MACRO_5G.tecnologia))
+                for nb in range(int(n_BS_macro)):
+                    nova_bs = BS(0, Operadora.operadora1, BSType.MACRO_4G, False)
+                    self._lista_bs.append(nova_bs)
 
     def calcula_capacidade_rede_acesso(self):
         for indx, dt in enumerate(self._demanda_trafego):
@@ -164,15 +181,15 @@ class Aglomerado:
                 print('É possível o upgrade de BSs ? {}'.format(teste_condicao))
                 if teste_condicao is True:
                     print('Executa atualizacoes de BSs')
-                    self.upgrade_bs(indx)
+                    self.upgrade_bs(indx, capacidade_expansao)
                     capacidade_atendimento = self.capacidade_rede_acesso()
                     capacidade_expansao = demanda - capacidade_atendimento
                     if capacidade_expansao >= 0:
                         print('Realiza a implantação de BSs novas')
-                        self.implatacao_novas_bs()
+                        self.implatacao_novas_bs(indx, capacidade_expansao)
                 else:
                     print('Realiza a implantação de BSs novas')
-                    self.implatacao_novas_bs()
+                    self.implatacao_novas_bs(indx, capacidade_expansao)
             else:
                 print('Não precisa ser atualizado')
             print('\n')
