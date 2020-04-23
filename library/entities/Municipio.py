@@ -39,6 +39,8 @@ class Municipio():
             ag.total_servidores_publicos_saude = ag.percentual_habitantes * self._total_servidores_publicos_saude
             ag.total_trabalhadores_informais = ag.total_pop_ativa - ag.total_servidores_publicos - ag.total_servidores_publicos_saude
             ag.total_veiculos = ag.percentual_habitantes * self._total_veiculos
+            ag.total_alunos = ag.percentual_habitantes * self._total_alunos
+            ag.total_docentes = ag.percentual_habitantes * self._total_docentes
             ag.tempo_analise = self._tempo_analise
 
     def calcula_demanda_trafego(self):

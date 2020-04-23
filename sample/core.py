@@ -9,11 +9,11 @@ from library.hetnet.BSType import BSType
 m1 = Municipio(1, 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 15)
 
 # total_habitantes, area_aglomerado, total_agencias_bancarias, total_domicilios
-a1 = Aglomerado(1, 2828.0, 1.81, 2.0, 1063.0, m1.percentual_pop_ativa) # Aglomerado Sede
+a1 = Aglomerado(1, 2828.0, 1.81, 2.0, 1063.0, m1.percentual_pop_ativa)  # Aglomerado Sede
 
 # Adicionando infraestrutura existente ao Aglomerado
-b1 = BS(1, BSType.MACRO_2G) # 1 BS do Tipo 2G
-b2 = BS(2, BSType.MACRO_3G) # 1 BS do Tipo 3G
+b1 = BS(1, BSType.MACRO_2G)  # 1 BS do Tipo 2G
+b2 = BS(2, BSType.MACRO_3G)  # 1 BS do Tipo 3G
 
 a1.adicionar_BS(b1)
 a1.adicionar_BS(b2)

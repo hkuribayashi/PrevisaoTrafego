@@ -25,6 +25,8 @@ class Aglomerado:
         self._total_servidores_publicos = 0.0
         self._total_servidores_publicos_saude = 0.0
         self._total_trabalhadores_informais = 0.0
+        self._total_alunos = 0.0
+        self._total_docentes = 0.0
         self._total_veiculos = 0.0
         self._tempo_analise = 0
 
@@ -45,16 +47,47 @@ class Aglomerado:
     def total_pop_ativa(self):
         return self._total_pop_ativa
 
-
-
     def adicionar_BS(self, BS):
         self._lista_bs.append(BS)
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self._tempo_analise)
         for app in AplicacaoFaroSede:
+            qtd_terminais = 0.0
+            if app.id == 1:
+                qtd_terminais = self._total_habitantes
+            else:
+                if app.id == 2:
+                    qtd_terminais = np.ceil(self._total_habitantes/1000.0)
+                else:
+                    if app.id == 3:
+                        qtd_terminais = self._total_servidores_publicos_saude
+                    else:
+                        if app.id == 4:
+                            qtd_terminais = self._total_alunos * 0.243
+                        else:
+                            if app.id == 5:
+                                qtd_terminais = self._total_alunos + self._total_docentes
+                            else:
+                                if app.id == 6:
+                                    qtd_terminais = 174
+                                else:
+                                    if app.id == 7:
+                                        qtd_terminais = self._total_servidores_publicos
+                                    else:
+                                        if app.id == 8:
+                                            qtd_terminais = self._total_agencias_bancarias
+                                        else:
+                                            if app.id ==9:
+                                                qtd_terminais = self._total_pop_ativa - self._total_servidores_publicos \
+                                                                - self._total_servidores_publicos_saude
+                                            else:
+                                                if app.id == 10 or app.id == 11:
+                                                    qtd_terminais = self._total_domicilios
+                                                else:
+                                                    qtd_terminais = self._total_veiculos
             c = get_gompertz(app.mu, app.beta, app.gamma, self._tempo_analise)
-            c = (app.qtd_terminais / self._area_aglomerado) * app.alpha * c
+            c = (qtd_terminais/self._area_aglomerado) * app.alpha * c
             demanda_aplicacoes += c
         self._demanda_aplicacoes = demanda_aplicacoes
 
