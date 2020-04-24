@@ -10,33 +10,9 @@ class BSType(Enum):
     FEMTO_5G = ('5G', 'indoor', 0.0013, 3.0, 3396.0, False)
 
     def __init__(self, tecnologia, ambiente, cobertura, setores, capacidade, atualizavel):
-        self._tecnologia = tecnologia
-        self._ambiente = ambiente
-        self._cobertura = cobertura
-        self._setores = setores
-        self._capacidade = capacidade
-        self._atualizavel = atualizavel
-
-    @property
-    def tecnologia(self):
-        return self._tecnologia
-
-    @property
-    def ambiente(self):
-        return self._ambiente
-
-    @property
-    def cobertura(self):
-        return self._cobertura
-
-    @property
-    def setores(self):
-        return self._setores
-
-    @property
-    def capacidade(self):
-        return self._capacidade
-
-    @property
-    def atualizavel(self):
-        return self._atualizavel
+        self.tecnologia = tecnologia
+        self.ambiente = ambiente
+        self.cobertura = cobertura
+        self.setores = setores
+        self.capacidade = capacidade
+        self.atualizavel = atualizavel

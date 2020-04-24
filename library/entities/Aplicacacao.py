@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class AplicacaoFaroSede(Enum):
+class Aplicacao(Enum):
 
     E_HEALTH_1 = (1, 'Monitoramento de Saúde', 1.0, 0.3, 5.0, 0.35, 1.0)
     E_HEALTH_2 = (2, 'Telemedicina', 25.0, 1.0, 5.0, 0.35, 0.4)
@@ -21,38 +21,10 @@ class AplicacaoFaroSede(Enum):
     IOT_12 = (12, 'GPS Tracking', 0.1, 1.0, 5.0, 0.45, 1.0)
 
     def __init__(self, id_, nome, vazao, mu, beta, gamma, alpha):
-        self._id = id_
-        self._nome = nome
-        self._vazao = vazao
-        self._mu = mu
-        self._beta = beta
-        self._gamma = gamma
-        self._alpha = alpha
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def nome(self):
-        return self._nome
-
-    @property
-    def vazao(self):
-        return self._vazao
-
-    @property
-    def mu(self):
-        return self._mu
-
-    @property
-    def beta(self):
-        return self._beta
-
-    @property
-    def gamma(self):
-        return self._gamma
-
-    @property
-    def alpha(self):
-        return self._alpha
+        self.id = id_
+        self.nome = nome
+        self.vazao = vazao
+        self.mu = mu
+        self.beta = beta
+        self.gamma = gamma
+        self.alpha = alpha
