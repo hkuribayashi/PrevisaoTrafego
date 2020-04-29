@@ -15,18 +15,25 @@ class BS:
                 if self.tipo_BS.tecnologia == '2G':
                     self.tipo_BS = BSType.MACRO_3G
                     self.atualizacoes.append(AtualizacaoBS.ATUALIZACAO_2G_PARA_3G)
+                    return True
                 else:
                     if self.tipo_BS.tecnologia == '3G':
                         self.tipo_BS = BSType.MACRO_4G
                         self.atualizacoes.append(AtualizacaoBS.ATUALIZACAO_3G_PARA_4G)
+                        return True
                     else:
                         if self.tipo_BS.tecnologia == '4G':
                             self.tipo_BS = BSType.MACRO_5G
                             self.atualizacoes.append(AtualizacaoBS.ATUALIZACAO_4G_PARA_5G)
+                            return True
+                        else:
+                            return False
             else:
                 if self.tipo_BS.tecnologia == '4G':
                     self.tipo_BS = BSType.FEMTO_5G
                     self.atualizacoes.append(AtualizacaoBS.ATUALIZACAO_4G_PARA_5G)
-            return True
+                    return True
+                else:
+                    return False
         else:
             return False

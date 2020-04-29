@@ -183,11 +183,13 @@ class Aglomerado:
                     print('Período de maturação tecnológica. BS não será atualizada para 5G.')
                     continue
                 capacidade_antes = bs.tipo_BS.capacidade * bs.tipo_BS.setores
-                print('Capacidade antes da Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_antes,
+                print('Capacidade antes da Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_antes,
+                                                                                               bs.tipo_BS.tipo,
                                                                                                    bs.tipo_BS.tecnologia))
                 bs.upgrade()
                 capacidade_depois = bs.tipo_BS.capacidade * bs.tipo_BS.setores
-                print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_depois,
+                print('Capacidade após Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_depois,
+                                                                                              bs.tipo_BS.tipo,
                                                                                                bs.tipo_BS.tecnologia))
                 capacidade_expandida_acumulada += (capacidade_depois - capacidade_antes)
                 if capacidade_expandida_acumulada > demanda_expansao:
