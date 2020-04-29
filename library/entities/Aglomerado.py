@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import copy as cp
 
 from library.entities.Aplicacacao import Aplicacao
 from library.hetnet.TrafegoUsuariosMoveis import TrafegoUsuariosMoveis as TUM
@@ -39,13 +39,16 @@ class Aglomerado:
         self.demanda_usuarios = 0.0
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
-        self.lista_bs = list()
+        self.tempo_maturacao = 3.0
+        self.lista_bs = dict(implantacao_macro = list(), implantacao_femto = list())
 
     def adicionar_BS(self, BS):
-        self.lista_bs.append(BS)
+        self.lista_bs['implantacao_macro'].append(BS)
+        self.lista_bs['implantacao_femto'].append(cp.deepcopy(BS))
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self.tempo_analise)
+        print('Dados de Aplicações de IoT/M2M para o Aglomerado {}'.format(self.id))
         for app in Aplicacao:
             qtd_terminais = 0.0
             if app.id == 1:
@@ -83,11 +86,10 @@ class Aglomerado:
                                                     qtd_terminais = np.ceil(self.total_veiculos)
             c = get_gompertz(app.mu, app.beta, app.gamma, self.tempo_analise)
             c = (qtd_terminais/self.area_aglomerado) * app.alpha * c * app.vazao
-            print('Dados de Aplicações de IoT/M2M para o Aglomerado {}'.format(self.id))
             print('Aplicação IoT: {} (alpha={}, beta={}, mu={}, gamma={}, terminais={}, vazao={})'.format(app.nome, app.alpha, app.beta, app.mu, app.gamma, qtd_terminais, app.vazao))
             demanda_aplicacoes += c
         self.demanda_aplicacoes = demanda_aplicacoes
-        print('\n')
+        print()
 
     def calcula_densidade_usuarios(self):
         densidade_usarios = get_gompertz(TUM.CONFIG_DEFAULT.proporcao_final_usuario_internet,
@@ -118,7 +120,7 @@ class Aglomerado:
         # Linhas: r_heavy/rordinary; Colunas: PC/Tablets/Smartphones
         # Valores expressos em Mbps
         # demanda_trafego_terminais = np.array([[0.125, 0.06244444, 0.01562222], [0.031, 0.00780556, 0.00195278]])
-        demanda_trafego_terminais = np.array([[25.0, 5.0, 2.0], [3.125, 0.625, 0.25]])  # valores aumentados
+        demanda_trafego_terminais = np.array([[25.0, 7.0, 5.0], [3.125, 1.625, 1.25]])  # valores aumentados
 
         for i in range(self.tempo_analise):
             r_j[:, i] = np.asmatrix(self.user_fraction[:, i].T).dot(demanda_trafego_terminais)
@@ -145,90 +147,131 @@ class Aglomerado:
         self.calcula_demada_usuarios()
         self.demanda_trafego = np.add(self.demanda_aplicacoes, self.demanda_usuarios)  # faco um chuveirinho somando
 
-    def capacidade_rede_acesso(self):
-        capacidade_atendimento = 0.0
-        for c in self.lista_bs:
-            capacidade_atendimento += (c.tipo_BS.capacidade * c.tipo_BS.setores)
-        return capacidade_atendimento
+    def __capacidade_atendimento_rede_acesso(self):
+        capacidade_atendimento_macro = 0.0
+        capacidade_atendimento_femto = 0.0
+        for c in self.lista_bs['implantacao_macro']:
+            capacidade_atendimento_macro += (c.tipo_BS.capacidade * c.tipo_BS.setores)
+        for c in self.lista_bs['implantacao_femto']:
+            capacidade_atendimento_femto += (c.tipo_BS.capacidade * c.tipo_BS.setores)
+        return capacidade_atendimento_macro, capacidade_atendimento_femto
 
-    def checa_possui_bs_atualizavel(self, t):
+    def __checa_possui_bs_atualizavel(self, ano, tipo):
         result = False
-        for b in self.lista_bs:
-            if t <= 3 and b.tipo_BS.tecnologia == '4G':
-                continue
-            result = result or b.tipo_BS.atualizavel
+        if tipo == 'Macro':
+            for bs in self.lista_bs['implantacao_macro']:
+                if ano <= self.tempo_maturacao and bs.tipo_BS.tecnologia == '4G':
+                    continue
+                result = result or bs.tipo_BS.atualizavel
+        else:
+            for bs in self.lista_bs['implantacao_femto']:
+                if ano <= self.tempo_maturacao and bs.tipo_BS.tecnologia == '4G':
+                    continue
+                result = result or bs.tipo_BS.atualizavel
         return result
 
-    def upgrade_bs(self, t, capacidade_expansao):
-        capacidade_expandida_acumulada = 0.0
-        for b in self.lista_bs:
-            capacidade_antes = b.tipo_BS.capacidade * b.tipo_BS.setores
-            print('Capacidade antes da Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_antes,
-                                                                                           b.tipo_BS.tecnologia))
-            if t <= 3 and b.tipo_BS.tecnologia == '4G':
-                continue
-            b.upgrade()
-            capacidade_depois = b.tipo_BS.capacidade * b.tipo_BS.setores
-            print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_depois,
-                                                                                       b.tipo_BS.tecnologia))
-            capacidade_expandida_acumulada += (capacidade_depois - capacidade_antes)
-            if (capacidade_expandida_acumulada > capacidade_expansao):
-                break
-
-    def implatacao_novas_bs(self, t, capacidade_expansao):
-        cobertura_existente = 0.0
-        for b in self.lista_bs:
-            cobertura_existente += b.tipo_BS.cobertura
-        area_descoberta = self.area_aglomerado - cobertura_existente
-        if area_descoberta >= 0:
-            print('Existência de área a ser coberta')
-            print('Inclusão de BSs por Cobertura')
-            n_BS_macro = area_descoberta / BSType.MACRO_4G.cobertura
-            print('Necessário implantar {} BSs'.format(n_BS_macro))
-            n_BS_femto = area_descoberta / BSType.FEMTO_4G.cobertura
-            print('Necessário implantar {} BSs'.format(n_BS_femto))
-        else:
-            print('Area já totalmente coberta')
-            print('Necessária inclusão de BSs por Capacidade em {} Mbps'.format(capacidade_expansao))
-            print('Estratégia 1: Macro BS only')
-            if t <= 3:
-                n_BS_macro = np.ceil(capacidade_expansao / (BSType.MACRO_4G.capacidade * BSType.MACRO_4G.setores))
-                print('Implantar {} BSs com tecnologia {}'.format(n_BS_macro, BSType.MACRO_4G.tecnologia))
-                for nb in range(int(n_BS_macro)):
-                    nova_bs = BS(BSType.MACRO_4G, False)
-                    self.lista_bs.append(nova_bs)
+    def __upgrade_bs(self, t, demanda_expansao, tipo):
+        if demanda_expansao >=0:
+            if tipo == 'Macro':
+                lista_bs = self.lista_bs['implantacao_macro']
             else:
-                n_BS_macro = np.ceil(capacidade_expansao / (BSType.MACRO_5G.capacidade * BSType.MACRO_5G.setores))
-                print('Implantar {} BSs com tecnologia {}'.format(n_BS_macro, BSType.MACRO_5G.tecnologia))
-                for nb in range(int(n_BS_macro)):
-                    nova_bs = BS(BSType.MACRO_4G, False)
-                    self.lista_bs.append(nova_bs)
+                lista_bs = self.lista_bs['implantacao_femto']
+
+            capacidade_expandida_acumulada = 0.0
+            for bs in lista_bs:
+                if t <= self.tempo_maturacao and bs.tipo_BS.tecnologia == '4G':
+                    print('Período de maturação tecnológica. BS não será atualizada para 5G.')
+                    continue
+                capacidade_antes = bs.tipo_BS.capacidade * bs.tipo_BS.setores
+                print('Capacidade antes da Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_antes,
+                                                                                                   bs.tipo_BS.tecnologia))
+                bs.upgrade()
+                capacidade_depois = bs.tipo_BS.capacidade * bs.tipo_BS.setores
+                print('Capacidade após Atualização: {} Mbps (BS com tecnologia {})'.format(capacidade_depois,
+                                                                                               bs.tipo_BS.tecnologia))
+                capacidade_expandida_acumulada += (capacidade_depois - capacidade_antes)
+                if capacidade_expandida_acumulada > demanda_expansao:
+                    break
+
+    def __implatacao_novas_bs(self, t, demanda_expansao, tipo_bs):
+        if tipo_bs == 'Macro':
+            if t <= self.tempo_maturacao:
+                tipo = BSType.MACRO_4G
+            else:
+                tipo = BSType.MACRO_5G
+        else:
+            if t <= self.tempo_maturacao:
+                tipo = BSType.FEMTO_4G
+            else:
+                tipo = BSType.FEMTO_5G
+
+        print('Inclusão de BSs por Capacidade em {} Mbps'.format(demanda_expansao))
+        n_bs = np.ceil( demanda_expansao/ (tipo.capacidade * tipo.setores) )
+        print('Implantar {} BSs com tecnologia {}'.format(n_bs, tipo.tecnologia))
+        for nb in range(int(n_bs)):
+            nova_bs = BS(0, tipo, False)
+            if tipo_bs == 'Macro':
+                self.lista_bs['implantacao_macro'].append(nova_bs)
+            else:
+                self.lista_bs['implantacao_femto'].append(nova_bs)
 
     def calcula_dimensionamento_rede_acesso(self):
-        for indx, dt in enumerate(self.demanda_trafego):
-            demanda = dt * self.area_aglomerado
-            print('Ano (t): {}'.format(indx))
+        print('Dimensionamento da Rede de Rádio do Aglomerado {}:'.format(self.id))
+        for ano, demanda_ano in enumerate(self.demanda_trafego):
+            demanda = demanda_ano * self.area_aglomerado
+            print('Ano (t): {}'.format(ano))
             print('Demanda de Trafego: {} Mbps'.format(demanda))
 
-            capacidade_atendimento = self.capacidade_rede_acesso()
-            print('Capacidade de Atendimento: {} Mbps'.format(capacidade_atendimento))
+            capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+            print('Estratégia de Implantação Macro:')
+            print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_macro))
+            print('Estratégia de Implantação Femto:')
+            print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_femto))
+            print()
 
-            capacidade_expansao = demanda - capacidade_atendimento
-            if capacidade_expansao >= 0:
-                print('Atualização em {} Mbps'.format(capacidade_expansao))
-                teste_condicao = self.checa_possui_bs_atualizavel(indx)
-                print('É possível o upgrade de BSs ? {}'.format(teste_condicao))
+            demanda_expansao_macro = demanda - capacidade_atendimento_macro
+            demanda_expansao_femto = demanda - capacidade_atendimento_femto
+
+            if demanda_expansao_macro >= 0 or demanda_expansao_femto >= 0:
+                if demanda_expansao_macro >= 0:
+                    print('Estratégia de Implantação Macro')
+                    print('Necessidade de atualização em {} Mbps'.format(demanda_expansao_macro))
+
+                if demanda_expansao_femto >= 0:
+                    print('Estratégia de Implantação Femto')
+                    print('Necessidade de atualização em {} Mbps'.format(demanda_expansao_femto))
+
+                print()
+
+                teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'Macro')
+                print('É possível o upgrade de BSs na Estratégia de Implantação Macro Only? {}'.format(teste_condicao))
+
                 if teste_condicao is True:
-                    print('Executa atualizacoes de BSs')
-                    self.upgrade_bs(indx, capacidade_expansao)
-                    capacidade_atendimento = self.capacidade_rede_acesso()
-                    capacidade_expansao = demanda - capacidade_atendimento
-                    if capacidade_expansao >= 0:
-                        print('Realiza a implantação de BSs novas')
-                        self.implatacao_novas_bs(indx, capacidade_expansao)
-                else:
-                    print('Realiza a implantação de BSs novas')
-                    self.implatacao_novas_bs(indx, capacidade_expansao)
+                    print('Executa atualizacoes de Macro BSs')
+                    self.__upgrade_bs(ano, demanda_expansao_macro, 'Macro')
+                print()
+
+                teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'Femto')
+                print('É possível o upgrade de BSs na Estratégia de Implantação Femto? {}'.format(teste_condicao))
+                if teste_condicao is True:
+                    print('Executa atualizacoes de Femto BSs')
+                    self.__upgrade_bs(ano, demanda_expansao_femto, 'Femto')
+                print()
+
+                capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+                demanda_expansao_macro = demanda - capacidade_atendimento_macro
+                demanda_expansao_femto = demanda - capacidade_atendimento_femto
+
+                if demanda_expansao_macro >= 0:
+                    print('Estratégia de Implantação Macro Only: Necessidade de implantação de novas BSs')
+                    print('Realiza a implantação de BSs novas do tipo Macro')
+                    self.__implatacao_novas_bs(ano, demanda_expansao_macro, 'Macro')
+                    print()
+                if demanda_expansao_femto >= 0:
+                    print('Estratégia de Implantação Femto: Necessidade de implantação de novas BSs')
+                    print('Realiza a implantação de BSs novas do tipo Femto')
+                    self.__implatacao_novas_bs(ano, demanda_expansao_femto, 'Femto')
+                    print()
             else:
-                print('Não precisa ser atualizado')
-            print('\n')
+                print('Rede de Acesso não precisa ser atualizada')
+            print()
