@@ -26,5 +26,5 @@ m1.adicionar_aglomerado(a2)
 m1.adicionar_aglomerado(a3)
 
 m1.calcula_demanda_trafego()
-m1.calcula_dimensionamento_rede_acesso()
+# m1.calcula_dimensionamento_rede_acesso()
 m1.debug()
