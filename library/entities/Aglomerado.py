@@ -33,6 +33,7 @@ class Aglomerado:
         self.percentual_alunos_ead = 0.0
 
         self.percentual_habitantes = 0.0
+        self.demanda_trafego_por_area = 0.0
         self.demanda_trafego = 0.0
         self.densidade_usuarios = 0.0
         self.demanda_trafego_terminais = 0.0
@@ -41,8 +42,10 @@ class Aglomerado:
         self.user_fraction = 0.0
         self.tempo_maturacao = 3.0
         self.lista_bs = dict(implantacao_macro = list(), implantacao_femto = list())
+        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro = list(), implantacao_femto = list())
 
     def adicionar_BS(self, BS):
+        BS.ano = 0
         self.lista_bs['implantacao_macro'].append(BS)
         self.lista_bs['implantacao_femto'].append(cp.deepcopy(BS))
 
@@ -92,11 +95,11 @@ class Aglomerado:
         print()
 
     def calcula_densidade_usuarios(self):
-        densidade_usarios = get_gompertz(TUM.CONFIG_DEFAULT.proporcao_final_usuario_internet,
+        densidade_usuarios = get_gompertz(TUM.CONFIG_DEFAULT.proporcao_final_usuario_internet,
                                          TUM.CONFIG_DEFAULT.inicio_adocao,
                                          TUM.CONFIG_DEFAULT.taxa_crescimento_usuarios_internet,
                                          self.tempo_analise)
-        self.densidade_usuarios = densidade_usarios * self.densidade_demografica * self.percentual_pop_ativa
+        self.densidade_usuarios = densidade_usuarios * self.densidade_demografica * self.percentual_pop_ativa
 
     def calcula_trafego_terminal(self):
         # Inicializa duas matrizes com 3 linhas (tipos de terminais) x 'tempo_analise' colunas
@@ -145,7 +148,7 @@ class Aglomerado:
         self.calcula_densidade_usuarios()
         self.calcula_trafego_terminal()
         self.calcula_demada_usuarios()
-        self.demanda_trafego = np.add(self.demanda_aplicacoes, self.demanda_usuarios)  # faco um chuveirinho somando
+        self.demanda_trafego_por_area = np.add(self.demanda_aplicacoes, self.demanda_usuarios)  # faco um chuveirinho somando
 
     def __capacidade_atendimento_rede_acesso(self):
         capacidade_atendimento_macro = 0.0
@@ -186,7 +189,7 @@ class Aglomerado:
                 print('Capacidade antes da Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_antes,
                                                                                                bs.tipo_BS.tipo,
                                                                                                    bs.tipo_BS.tecnologia))
-                bs.upgrade()
+                bs.upgrade(t)
                 capacidade_depois = bs.tipo_BS.capacidade * bs.tipo_BS.setores
                 print('Capacidade após Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_depois,
                                                                                               bs.tipo_BS.tipo,
@@ -211,7 +214,7 @@ class Aglomerado:
         n_bs = np.ceil( demanda_expansao/ (tipo.capacidade * tipo.setores) )
         print('Implantar {} BSs com tecnologia {}'.format(n_bs, tipo.tecnologia))
         for nb in range(int(n_bs)):
-            nova_bs = BS(0, tipo, False)
+            nova_bs = BS(0, tipo, t, False)
             if tipo_bs == 'Macro':
                 self.lista_bs['implantacao_macro'].append(nova_bs)
             else:
@@ -219,20 +222,23 @@ class Aglomerado:
 
     def calcula_dimensionamento_rede_acesso(self):
         print('Dimensionamento da Rede de Rádio do Aglomerado {}:'.format(self.id))
-        for ano, demanda_ano in enumerate(self.demanda_trafego):
-            demanda = demanda_ano * self.area_aglomerado
+        for ano, demanda_ano in enumerate(self.demanda_trafego_por_area):
+            self.demanda_trafego[ano] = demanda_ano * self.area_aglomerado
             print('Ano (t): {}'.format(ano))
-            print('Demanda de Trafego: {} Mbps'.format(demanda))
+            print('Demanda de Trafego: {} Mbps'.format(self.demanda_trafego[ano]))
 
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+            self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro
+            self.capacidade_atendimento_rede_acesso['implantacao_femto'][ano] = capacidade_atendimento_femto
+
             print('Estratégia de Implantação Macro:')
             print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_macro))
             print('Estratégia de Implantação Femto:')
             print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_femto))
             print()
 
-            demanda_expansao_macro = demanda - capacidade_atendimento_macro
-            demanda_expansao_femto = demanda - capacidade_atendimento_femto
+            demanda_expansao_macro = self.demanda_trafego[ano] - capacidade_atendimento_macro
+            demanda_expansao_femto = self.demanda_trafego[ano] - capacidade_atendimento_femto
 
             if demanda_expansao_macro >= 0 or demanda_expansao_femto >= 0:
                 if demanda_expansao_macro >= 0:
@@ -261,8 +267,8 @@ class Aglomerado:
                 print()
 
                 capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
-                demanda_expansao_macro = demanda - capacidade_atendimento_macro
-                demanda_expansao_femto = demanda - capacidade_atendimento_femto
+                demanda_expansao_macro = self.demanda_trafego[ano] - capacidade_atendimento_macro
+                demanda_expansao_femto = self.demanda_trafego[ano] - capacidade_atendimento_femto
 
                 if demanda_expansao_macro >= 0:
                     print('Estratégia de Implantação Macro Only: Necessidade de implantação de novas BSs')
@@ -277,3 +283,6 @@ class Aglomerado:
             else:
                 print('Rede de Acesso não precisa ser atualizada')
             print()
+            capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+            self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro
+            self.capacidade_atendimento_rede_acesso['implantacao_femto'][ano] = capacidade_atendimento_femto

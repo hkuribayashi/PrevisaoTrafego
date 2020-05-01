@@ -1,7 +1,7 @@
-from enum import Enum, auto
 
 
-class AtualizacaoBS(Enum):
-    ATUALIZACAO_2G_PARA_3G = auto()
-    ATUALIZACAO_3G_PARA_4G = auto()
-    ATUALIZACAO_4G_PARA_5G = auto()
+class AtualizacaoBS():
+
+    def __init__(self, tipo, ano):
+        self.tipo = tipo
+        self.ano = ano
