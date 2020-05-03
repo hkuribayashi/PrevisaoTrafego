@@ -36,7 +36,7 @@ class Municipio():
             ag.tempo_analise = self.tempo_analise
             ag.percentual_alunos_ead = self.percentual_alunos_ead
             ag.capacidade_atendimento_rede_acesso['implantacao_macro'] = np.zeros(self.tempo_analise)
-            ag.capacidade_atendimento_rede_acesso['implantacao_femto'] = np.zeros(self.tempo_analise)
+            ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'] = np.zeros(self.tempo_analise)
             ag.demanda_trafego = np.zeros(self.tempo_analise)
 
     def calcula_demanda_trafego(self):
@@ -83,7 +83,7 @@ class Municipio():
             print('\n')
 
             capacidade_atendimento_rede_acesso_macro += ag.capacidade_atendimento_rede_acesso['implantacao_macro']
-            capacidade_atendimento_rede_acesso_femto += ag.capacidade_atendimento_rede_acesso['implantacao_femto']
+            capacidade_atendimento_rede_acesso_femto += ag.capacidade_atendimento_rede_acesso['implantacao_hetnet']
             volume_trafego_rede_acesso_total += ag.demanda_trafego
 
             plt.title('Demanda de Tráfego por Área x Densidade de Usuários - Aglomerado {}'.format(ag.id))
@@ -106,8 +106,8 @@ class Municipio():
             plt.title('Capacidade de Atendimento Rede de Acesso - Aglomerado {}'.format(ag.id))
             plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*',
                      label='Capacidade Implantação Macro Only [Mbps]')
-            plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_femto'], '-o',
-                     label='Capacidade Implantação Femto [Mbps]')
+            plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o',
+                     label='Capacidade Implantação HetNet [Mbps]')
             plt.xlabel('Volume de Tráfego de Dados do Aglomerado [Mbps]')
             plt.ylabel('Capacidade de Atendimento [Mbps]')
             plt.grid(linestyle=':')
@@ -117,8 +117,8 @@ class Municipio():
             plt.title('Capacidade de Atendimento Rede de Acesso - Aglomerado {}'.format(ag.id))
             plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*',
                      label='Capacidade Implantação Macro Only [Mbps]')
-            plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_femto'], '-o',
-                     label='Capacidade Implantação Femto [Mbps]')
+            plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o',
+                     label='Capacidade Implantação HetNet [Mbps]')
             plt.plot(time, ag.demanda_trafego, '-.', label='Volume de Tráfego [Mbps]')
             plt.xlabel('Período de Análise (t)')
             plt.ylabel('Capacidade de Atendimento [Mbps]')
@@ -140,7 +140,7 @@ class Municipio():
         plt.plot(time, capacidade_atendimento_rede_acesso_macro, '-*',
                  label='Capacidade Implantação Macro Only [Mbps]')
         plt.plot(time, capacidade_atendimento_rede_acesso_femto, '-o',
-                 label='Capacidade Implantação Femto [Mbps]')
+                 label='Capacidade Implantação HetNet [Mbps]')
         plt.plot(time, volume_trafego_rede_acesso_total, '-.', label='Volume de Tráfego [Mbps]')
         plt.xlabel('Período de Análise (t)')
         plt.ylabel('Capacidade de Atendimento [Mbps]')

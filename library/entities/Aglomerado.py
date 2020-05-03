@@ -42,13 +42,13 @@ class Aglomerado:
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
         self.tempo_maturacao = 4.0
-        self.lista_bs = dict(implantacao_macro = list(), implantacao_femto = list())
-        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro = list(), implantacao_femto = list())
-        self.quantidade_bs = dict(implantacao_macro=list(), implantacao_femto=list())
+        self.lista_bs = dict(implantacao_macro = list(), implantacao_hetnet = list())
+        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro = list(), implantacao_hetnet = list())
+        self.quantidade_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
 
     def adicionar_BS(self, BS):
         self.lista_bs['implantacao_macro'].append(BS)
-        self.lista_bs['implantacao_femto'].append(cp.deepcopy(BS))
+        self.lista_bs['implantacao_hetnet'].append(cp.deepcopy(BS))
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self.tempo_analise)
@@ -156,7 +156,7 @@ class Aglomerado:
         capacidade_atendimento_femto = 0.0
         for c in self.lista_bs['implantacao_macro']:
             capacidade_atendimento_macro += (c.tipo_BS.capacidade * c.tipo_BS.setores)
-        for c in self.lista_bs['implantacao_femto']:
+        for c in self.lista_bs['implantacao_hetnet']:
             capacidade_atendimento_femto += (c.tipo_BS.capacidade * c.tipo_BS.setores)
         return capacidade_atendimento_macro, capacidade_atendimento_femto
 
@@ -166,7 +166,7 @@ class Aglomerado:
             for bs in self.lista_bs['implantacao_macro']:
                 result = result or bs.tipo_BS.atualizavel
         else:
-            for bs in self.lista_bs['implantacao_femto']:
+            for bs in self.lista_bs['implantacao_hetnet']:
                 result = result or bs.tipo_BS.atualizavel
         return result
 
@@ -175,7 +175,7 @@ class Aglomerado:
             if tipo == 'Macro':
                 lista_bs = self.lista_bs['implantacao_macro']
             else:
-                lista_bs = self.lista_bs['implantacao_femto']
+                lista_bs = self.lista_bs['implantacao_hetnet']
 
             capacidade_expandida_acumulada = 0.0
             for bs in lista_bs:
@@ -212,7 +212,7 @@ class Aglomerado:
             if tipo_bs == 'Macro':
                 self.lista_bs['implantacao_macro'].append(nova_bs)
             else:
-                self.lista_bs['implantacao_femto'].append(nova_bs)
+                self.lista_bs['implantacao_hetnet'].append(nova_bs)
 
     def calcula_dimensionamento_rede_acesso(self):
         print('Dimensionamento da Rede de Rádio do Aglomerado {}:'.format(self.id))
@@ -237,9 +237,11 @@ class Aglomerado:
                         nova_bs = BS(0, TipoBS.MACRO_4G, ano, False)
                     else:
                         nova_bs = BS(0, TipoBS.MICRO_4G, ano, False)
+
                     self.lista_bs['implantacao_macro'].append( BS(0, TipoBS.MACRO_4G, ano, False) )
-                    self.lista_bs['implantacao_femto'].append( nova_bs )
-                    print('Estratégia de Implantação Macro:')
+                    self.lista_bs['implantacao_hetnet'].append( nova_bs )
+
+                    print('Estratégia de Implantação Macro Only:')
                     print('Implantação de uma Macro BS com tecnologia 4G')
                     print('Estratégia de Implantação HetNet:')
                     print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo, nova_bs.tipo_BS.tecnologia))
@@ -247,9 +249,9 @@ class Aglomerado:
 
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
             self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro
-            self.capacidade_atendimento_rede_acesso['implantacao_femto'][ano] = capacidade_atendimento_femto
+            self.capacidade_atendimento_rede_acesso['implantacao_hetnet'][ano] = capacidade_atendimento_femto
 
-            print('Estratégia de Implantação Macro:')
+            print('Estratégia de Implantação Macro Only:')
             print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_macro))
             print('Estratégia de Implantação HetNet:')
             print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_femto))
@@ -316,4 +318,4 @@ class Aglomerado:
             print()
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
             self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro
-            self.capacidade_atendimento_rede_acesso['implantacao_femto'][ano] = capacidade_atendimento_femto
+            self.capacidade_atendimento_rede_acesso['implantacao_hetnet'][ano] = capacidade_atendimento_femto
