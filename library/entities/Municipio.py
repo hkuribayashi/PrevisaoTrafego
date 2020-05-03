@@ -52,7 +52,12 @@ class Municipio():
         time = np.arange(self.tempo_analise)
         demanda_trafego_total = np.zeros(self.tempo_analise)
         demanda_usuarios_total = np.zeros(self.tempo_analise)
-        demanda_aplicacoes_total = np.zeros(self.tempo_analise)
+        demanda_aplicacoes_total_area = np.zeros(self.tempo_analise)
+
+        capacidade_atendimento_rede_acesso_macro = np.zeros(self.tempo_analise)
+        capacidade_atendimento_rede_acesso_femto = np.zeros(self.tempo_analise)
+        volume_trafego_rede_acesso_total = np.zeros(self.tempo_analise)
+
         for ag in self.aglomerados:
             print('Dados do Aglomerado {}:'.format(ag.id))
             print('User Fraction')
@@ -70,12 +75,17 @@ class Municipio():
             print('\n')
             print('Demanda Aplicações')
             print(ag.demanda_aplicacoes)
-            demanda_aplicacoes_total += ag.demanda_aplicacoes
+            demanda_aplicacoes_total_area += ag.demanda_aplicacoes
             print('\n')
             print('Demanda de Trafego')
             print(ag.demanda_trafego_por_area)
             demanda_trafego_total += ag.demanda_trafego_por_area
             print('\n')
+
+            capacidade_atendimento_rede_acesso_macro += ag.capacidade_atendimento_rede_acesso['implantacao_macro']
+            capacidade_atendimento_rede_acesso_femto += ag.capacidade_atendimento_rede_acesso['implantacao_femto']
+            volume_trafego_rede_acesso_total += ag.demanda_trafego
+
             plt.title('Demanda de Tráfego por Área x Densidade de Usuários - Aglomerado {}'.format(ag.id))
             plt.plot(ag.densidade_usuarios, ag.demanda_trafego_por_area, '-*')
             plt.xlabel('Densidade de Usuários (usuários/km2)')
@@ -98,7 +108,6 @@ class Municipio():
                      label='Capacidade Implantação Macro Only [Mbps]')
             plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_femto'], '-o',
                      label='Capacidade Implantação Femto [Mbps]')
-            # plt.plot(time, ag.demanda_trafego, '-.', label='Demanda de Tráfego [Mbps]')
             plt.xlabel('Volume de Tráfego de Dados do Aglomerado [Mbps]')
             plt.ylabel('Capacidade de Atendimento [Mbps]')
             plt.grid(linestyle=':')
@@ -120,9 +129,21 @@ class Municipio():
         plt.title('Demanda de Total de Tráfego por Área  do Município {}'.format(self.id))
         plt.plot(time, demanda_trafego_total, '-*', label='Demanda Total')
         plt.plot(time, demanda_usuarios_total, '-o', label='Demanda Usuários')
-        plt.plot(time, demanda_aplicacoes_total, '-.', label='Demanda Aplicações IoT/M2M')
+        plt.plot(time, demanda_aplicacoes_total_area, '-.', label='Demanda Aplicações IoT/M2M')
         plt.xlabel('Período de Análise (t)')
         plt.ylabel('Demanda de Tráfego por Área [Mbps/km2]')
         plt.grid(linestyle=':')
         plt.legend(loc='upper left')
+        plt.figure()
+
+        plt.title('Capacidade de Atendimento Rede de Acesso - Municipio {}'.format(self.id))
+        plt.plot(time, capacidade_atendimento_rede_acesso_macro, '-*',
+                 label='Capacidade Implantação Macro Only [Mbps]')
+        plt.plot(time, capacidade_atendimento_rede_acesso_femto, '-o',
+                 label='Capacidade Implantação Femto [Mbps]')
+        plt.plot(time, volume_trafego_rede_acesso_total, '-.', label='Volume de Tráfego [Mbps]')
+        plt.xlabel('Período de Análise (t)')
+        plt.ylabel('Capacidade de Atendimento [Mbps]')
+        plt.grid(linestyle=':')
+        plt.legend(loc='best')
         plt.show()

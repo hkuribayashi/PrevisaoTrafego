@@ -3,7 +3,7 @@ import copy as cp
 
 from library.entities.Aplicacacao import Aplicacao
 from library.hetnet.TrafegoUsuariosMoveis import TrafegoUsuariosMoveis as TUM
-from library.hetnet.BSType import BSType
+from library.hetnet.TipoBS import TipoBS
 from library.hetnet.BS import BS
 from library.util.Util import get_gompertz
 
@@ -11,7 +11,7 @@ from library.util.Util import get_gompertz
 class Aglomerado:
 
     def __init__(self, id_, total_habitantes, area_aglomerado, total_agencias_bancarias, total_domicilios,
-                 percentual_pop_ativa, total_cruzamentos):
+                 percentual_pop_ativa, total_cruzamentos, tipo_aglomerado):
         self.id = id_
         self.total_habitantes = total_habitantes
         self.area_aglomerado = area_aglomerado
@@ -22,6 +22,7 @@ class Aglomerado:
         self.total_pop_ativa = self.percentual_pop_ativa * self.total_habitantes
         self.total_pop_inativa = self.total_habitantes - self.total_pop_ativa
         self.total_cruzamentos = total_cruzamentos
+        self.tipo_aglomerado = tipo_aglomerado
 
         self.total_servidores_publicos = 0.0
         self.total_servidores_publicos_saude = 0.0
@@ -40,12 +41,12 @@ class Aglomerado:
         self.demanda_usuarios = 0.0
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
-        self.tempo_maturacao = 3.0
+        self.tempo_maturacao = 4.0
         self.lista_bs = dict(implantacao_macro = list(), implantacao_femto = list())
         self.capacidade_atendimento_rede_acesso = dict(implantacao_macro = list(), implantacao_femto = list())
+        self.quantidade_bs = dict(implantacao_macro=list(), implantacao_femto=list())
 
     def adicionar_BS(self, BS):
-        BS.ano = 0
         self.lista_bs['implantacao_macro'].append(BS)
         self.lista_bs['implantacao_femto'].append(cp.deepcopy(BS))
 
@@ -163,13 +164,9 @@ class Aglomerado:
         result = False
         if tipo == 'Macro':
             for bs in self.lista_bs['implantacao_macro']:
-                if ano <= self.tempo_maturacao and bs.tipo_BS.tecnologia == '4G':
-                    continue
                 result = result or bs.tipo_BS.atualizavel
         else:
             for bs in self.lista_bs['implantacao_femto']:
-                if ano <= self.tempo_maturacao and bs.tipo_BS.tecnologia == '4G':
-                    continue
                 result = result or bs.tipo_BS.atualizavel
         return result
 
@@ -182,9 +179,6 @@ class Aglomerado:
 
             capacidade_expandida_acumulada = 0.0
             for bs in lista_bs:
-                if t <= self.tempo_maturacao and bs.tipo_BS.tecnologia == '4G':
-                    print('Período de maturação tecnológica. BS não será atualizada para 5G.')
-                    continue
                 capacidade_antes = bs.tipo_BS.capacidade * bs.tipo_BS.setores
                 print('Capacidade antes da Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_antes,
                                                                                                bs.tipo_BS.tipo,
@@ -201,14 +195,14 @@ class Aglomerado:
     def __implatacao_novas_bs(self, t, demanda_expansao, tipo_bs):
         if tipo_bs == 'Macro':
             if t <= self.tempo_maturacao:
-                tipo = BSType.MACRO_4G
+                tipo = TipoBS.MACRO_45G
             else:
-                tipo = BSType.MACRO_5G
+                tipo = TipoBS.MACRO_5G
         else:
             if t <= self.tempo_maturacao:
-                tipo = BSType.FEMTO_4G
+                tipo = TipoBS.FEMTO_45G
             else:
-                tipo = BSType.FEMTO_5G
+                tipo = TipoBS.FEMTO_5G
 
         print('Inclusão de BSs por Capacidade em {} Mbps'.format(demanda_expansao))
         n_bs = np.ceil( demanda_expansao/ (tipo.capacidade * tipo.setores) )
@@ -228,12 +222,36 @@ class Aglomerado:
             print('Demanda de Trafego: {} Mbps'.format(self.demanda_trafego[ano]))
 
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+            if capacidade_atendimento_macro == 0:
+                print('Capacidade de Atendimento Inexistente no Aglomerado {}:'.format(self.id))
+                print('Realizando a implantação de uma BS para criação de cobertura básica')
+                if self.tipo_aglomerado == 'Sede':
+                    nova_bs = BS(0, TipoBS.MACRO_4G, ano, False)
+                    self.adicionar_BS(nova_bs)
+                    print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo,
+                                                                              nova_bs.tipo_BS.tecnologia))
+                else:
+                    diff_macro = abs((TipoBS.MACRO_4G.cobertura_por_setor * TipoBS.MACRO_4G.setores) - self.area_aglomerado)
+                    diff_micro = abs((TipoBS.MICRO_4G.cobertura_por_setor * TipoBS.MICRO_4G.setores) - self.area_aglomerado)
+                    if diff_macro < diff_micro:
+                        nova_bs = BS(0, TipoBS.MACRO_4G, ano, False)
+                    else:
+                        nova_bs = BS(0, TipoBS.MICRO_4G, ano, False)
+                    self.lista_bs['implantacao_macro'].append( BS(0, TipoBS.MACRO_4G, ano, False) )
+                    self.lista_bs['implantacao_femto'].append( nova_bs )
+                    print('Estratégia de Implantação Macro:')
+                    print('Implantação de uma Macro BS com tecnologia 4G')
+                    print('Estratégia de Implantação HetNet:')
+                    print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo, nova_bs.tipo_BS.tecnologia))
+                    print()
+
+            capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
             self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro
             self.capacidade_atendimento_rede_acesso['implantacao_femto'][ano] = capacidade_atendimento_femto
 
             print('Estratégia de Implantação Macro:')
             print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_macro))
-            print('Estratégia de Implantação Femto:')
+            print('Estratégia de Implantação HetNet:')
             print('Capacidade de Atendimento de BSs existentes: {} Mbps'.format(capacidade_atendimento_femto))
             print()
 
@@ -242,29 +260,42 @@ class Aglomerado:
 
             if demanda_expansao_macro >= 0 or demanda_expansao_femto >= 0:
                 if demanda_expansao_macro >= 0:
-                    print('Estratégia de Implantação Macro')
+                    print('Estratégia de Implantação Macro Only:')
                     print('Necessidade de atualização em {} Mbps'.format(demanda_expansao_macro))
 
                 if demanda_expansao_femto >= 0:
-                    print('Estratégia de Implantação Femto')
+                    print('Estratégia de Implantação HetNet:')
                     print('Necessidade de atualização em {} Mbps'.format(demanda_expansao_femto))
 
                 print()
 
-                teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'Macro')
-                print('É possível o upgrade de BSs na Estratégia de Implantação Macro Only? {}'.format(teste_condicao))
+                teste_condicao = True
+                while teste_condicao:
+                    teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'Macro')
+                    print('É possível o upgrade de BSs na Estratégia de Implantação Macro Only? {}'.format(teste_condicao))
 
-                if teste_condicao is True:
-                    print('Executa atualizacoes de Macro BSs')
-                    self.__upgrade_bs(ano, demanda_expansao_macro, 'Macro')
-                print()
+                    if teste_condicao is True:
+                        print('Executa atualizacoes de Macro BSs')
+                        self.__upgrade_bs(ano, demanda_expansao_macro, 'Macro')
+                    print()
 
-                teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'Femto')
-                print('É possível o upgrade de BSs na Estratégia de Implantação Femto? {}'.format(teste_condicao))
-                if teste_condicao is True:
-                    print('Executa atualizacoes de Femto BSs')
-                    self.__upgrade_bs(ano, demanda_expansao_femto, 'Femto')
-                print()
+                    capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+                    if self.demanda_trafego[ano] - capacidade_atendimento_macro <= 0:
+                        break
+
+                teste_condicao = True
+                while teste_condicao:
+                    teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'HetNet')
+                    print('É possível o upgrade de BSs na Estratégia de Implantação HetNet? {}'.format(teste_condicao))
+
+                    if teste_condicao is True:
+                        print('Executa atualizacoes de Femto BSs')
+                        self.__upgrade_bs(ano, demanda_expansao_femto, 'Femto')
+                    print()
+
+                    capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
+                    if self.demanda_trafego[ano] - capacidade_atendimento_femto <= 0:
+                        break
 
                 capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
                 demanda_expansao_macro = self.demanda_trafego[ano] - capacidade_atendimento_macro

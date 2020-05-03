@@ -1,6 +1,5 @@
 from library.hetnet.AtualizacaoBS import AtualizacaoBS
-from library.hetnet.BSType import BSType
-from library.hetnet.TipoAtualizacaoBS import TipoAtualizacaoBS
+from library.hetnet.TipoBS import TipoBS
 
 
 class BS:
@@ -12,30 +11,18 @@ class BS:
         self.atualizacoes = list()
 
     def upgrade(self, ano):
-        if self.tipo_BS.atualizavel is True:
-            if self.tipo_BS.ambiente == 'outdoor':
-                if self.tipo_BS.tecnologia == '2G':
-                    self.tipo_BS = BSType.MACRO_3G
-                    self.atualizacoes.append(AtualizacaoBS(TipoAtualizacaoBS.PARA_3G, ano))
-                    return True
-                else:
-                    if self.tipo_BS.tecnologia == '3G':
-                        self.tipo_BS = BSType.MACRO_4G
-                        self.atualizacoes.append(AtualizacaoBS(TipoAtualizacaoBS.PARA_4G, ano))
-                        return True
-                    else:
-                        if self.tipo_BS.tecnologia == '4G':
-                            self.tipo_BS = BSType.MACRO_5G
-                            self.atualizacoes.append(AtualizacaoBS(TipoAtualizacaoBS.PARA_5G, ano))
-                            return True
-                        else:
-                            return False
-            else:
-                if self.tipo_BS.tecnologia == '4G':
-                    self.tipo_BS = BSType.FEMTO_5G
-                    self.atualizacoes.append(AtualizacaoBS(TipoAtualizacaoBS.PARA_5G, ano))
-                    return True
-                else:
-                    return False
-        else:
+        switcher = {
+            TipoBS.MACRO_2G: TipoBS.MACRO_3G,
+            TipoBS.MACRO_3G: TipoBS.MACRO_4G,
+            TipoBS.MACRO_4G: TipoBS.MACRO_45G,
+            TipoBS.MICRO_4G: TipoBS.MICRO_45G,
+            TipoBS.PICO_4G: TipoBS.PICO_45G,
+            TipoBS.FEMTO_4G: TipoBS.FEMTO_45G,
+        }
+        atualizacao = switcher.get(self.tipo_BS, False)
+        if atualizacao is False:
             return False
+        else:
+            self.tipo_BS = atualizacao
+            self.atualizacoes.append(AtualizacaoBS(atualizacao, ano))
+            return True
