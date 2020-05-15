@@ -5,7 +5,7 @@ from library.entities.Aplicacacao import Aplicacao
 from library.hetnet.TrafegoUsuariosMoveis import TrafegoUsuariosMoveis as TUM
 from library.hetnet.TipoBS import TipoBS
 from library.hetnet.BS import BS
-from library.util.Util import get_gompertz
+from library.util.Util import get_gompertz, get_ponto_aleatorio, busca_bs_nao_hub, get_distancia_manhattan, busca_bs_hub
 
 
 class Aglomerado:
@@ -17,7 +17,7 @@ class Aglomerado:
         self.area_aglomerado = area_aglomerado
         self.total_agencias_bancarias = total_agencias_bancarias
         self.total_domicilios = total_domicilios
-        self.densidade_demografica = total_habitantes/area_aglomerado
+        self.densidade_demografica = total_habitantes / area_aglomerado
         self.percentual_pop_ativa = percentual_pop_ativa
         self.total_pop_ativa = self.percentual_pop_ativa * self.total_habitantes
         self.total_pop_inativa = self.total_habitantes - self.total_pop_ativa
@@ -42,8 +42,8 @@ class Aglomerado:
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
         self.tempo_maturacao = 4.0
-        self.lista_bs = dict(implantacao_macro = list(), implantacao_hetnet = list())
-        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro = list(), implantacao_hetnet = list())
+        self.lista_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
+        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro=list(), implantacao_hetnet=list())
         self.quantidade_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
 
     def adicionar_BS(self, BS):
@@ -59,7 +59,7 @@ class Aglomerado:
                 qtd_terminais = self.total_habitantes
             else:
                 if app.id == 2:
-                    qtd_terminais = np.ceil(self.total_habitantes/1000.0)
+                    qtd_terminais = np.ceil(self.total_habitantes / 1000.0)
                 else:
                     if app.id == 3:
                         qtd_terminais = self.total_servidores_publicos_saude
@@ -79,7 +79,7 @@ class Aglomerado:
                                         if app.id == 8:
                                             qtd_terminais = self.total_agencias_bancarias * 5
                                         else:
-                                            if app.id ==9:
+                                            if app.id == 9:
                                                 qtd_terminais = np.ceil(self.total_pop_ativa -
                                                                         self.total_servidores_publicos -
                                                                         self.total_servidores_publicos_saude)
@@ -89,17 +89,23 @@ class Aglomerado:
                                                 else:
                                                     qtd_terminais = np.ceil(self.total_veiculos)
             c = get_gompertz(app.mu, app.beta, app.gamma, self.tempo_analise)
-            c = (qtd_terminais/self.area_aglomerado) * app.alpha * c * app.vazao
-            print('Aplicação IoT: {} (alpha={}, beta={}, mu={}, gamma={}, terminais={}, vazao={})'.format(app.nome, app.alpha, app.beta, app.mu, app.gamma, qtd_terminais, app.vazao))
+            c = (qtd_terminais / self.area_aglomerado) * app.alpha * c * app.vazao
+            print('Aplicação IoT: {} (alpha={}, beta={}, mu={}, gamma={}, terminais={}, vazao={})'.format(app.nome,
+                                                                                                          app.alpha,
+                                                                                                          app.beta,
+                                                                                                          app.mu,
+                                                                                                          app.gamma,
+                                                                                                          qtd_terminais,
+                                                                                                          app.vazao))
             demanda_aplicacoes += c
         self.demanda_aplicacoes = demanda_aplicacoes
         print()
 
     def calcula_densidade_usuarios(self):
         densidade_usuarios = get_gompertz(TUM.CONFIG_DEFAULT.proporcao_final_usuario_internet,
-                                         TUM.CONFIG_DEFAULT.inicio_adocao,
-                                         TUM.CONFIG_DEFAULT.taxa_crescimento_usuarios_internet,
-                                         self.tempo_analise)
+                                          TUM.CONFIG_DEFAULT.inicio_adocao,
+                                          TUM.CONFIG_DEFAULT.taxa_crescimento_usuarios_internet,
+                                          self.tempo_analise)
         self.densidade_usuarios = densidade_usuarios * self.densidade_demografica * self.percentual_pop_ativa
 
     def calcula_trafego_terminal(self):
@@ -138,18 +144,19 @@ class Aglomerado:
             rs_j[:, i] = np.multiply(r_j[:, i], s_j)
 
         self.demanda_trafego_terminais = np.sum(rs_j,
-                                                 axis=0)  # achata somando as linhas, resultado em 1 linha e 15 colunas
+                                                axis=0)  # achata somando as linhas, resultado em 1 linha e 15 colunas
 
     def calcula_demada_usuarios(self):
         self.demanda_usuarios = self.densidade_usuarios * TUM.CONFIG_DEFAULT.taxa_usuarios_ativos \
-                                 * self.demanda_trafego_terminais
+                                * self.demanda_trafego_terminais
 
     def calcula_demanda_trafego(self):
         self.calcula_demanda_aplicacoes()
         self.calcula_densidade_usuarios()
         self.calcula_trafego_terminal()
         self.calcula_demada_usuarios()
-        self.demanda_trafego_por_area = np.add(self.demanda_aplicacoes, self.demanda_usuarios)  # faco um chuveirinho somando
+        self.demanda_trafego_por_area = np.add(self.demanda_aplicacoes,
+                                               self.demanda_usuarios)  # faco um chuveirinho somando
 
     def __capacidade_atendimento_rede_acesso(self):
         capacidade_atendimento_macro = 0.0
@@ -171,7 +178,7 @@ class Aglomerado:
         return result
 
     def __upgrade_bs(self, t, demanda_expansao, tipo):
-        if demanda_expansao >=0:
+        if demanda_expansao >= 0:
             if tipo == 'Macro':
                 lista_bs = self.lista_bs['implantacao_macro']
             else:
@@ -181,13 +188,13 @@ class Aglomerado:
             for bs in lista_bs:
                 capacidade_antes = bs.tipo_BS.capacidade * bs.tipo_BS.setores
                 print('Capacidade antes da Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_antes,
-                                                                                               bs.tipo_BS.tipo,
-                                                                                                   bs.tipo_BS.tecnologia))
+                                                                                                  bs.tipo_BS.tipo,
+                                                                                                  bs.tipo_BS.tecnologia))
                 bs.upgrade(t)
                 capacidade_depois = bs.tipo_BS.capacidade * bs.tipo_BS.setores
                 print('Capacidade após Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_depois,
                                                                                               bs.tipo_BS.tipo,
-                                                                                               bs.tipo_BS.tecnologia))
+                                                                                              bs.tipo_BS.tecnologia))
                 capacidade_expandida_acumulada += (capacidade_depois - capacidade_antes)
                 if capacidade_expandida_acumulada > demanda_expansao:
                     break
@@ -205,10 +212,11 @@ class Aglomerado:
                 tipo = TipoBS.FEMTO_5G
 
         print('Inclusão de BSs por Capacidade em {} Mbps'.format(demanda_expansao))
-        n_bs = np.ceil( demanda_expansao/ (tipo.capacidade * tipo.setores) )
+        n_bs = np.ceil(demanda_expansao / (tipo.capacidade * tipo.setores))
         print('Implantar {} BSs com tecnologia {}'.format(n_bs, tipo.tecnologia))
         for nb in range(int(n_bs)):
-            nova_bs = BS(0, tipo, t, False)
+            ponto = get_ponto_aleatorio()
+            nova_bs = BS(0, tipo, ponto, t, False, False)
             if tipo_bs == 'Macro':
                 self.lista_bs['implantacao_macro'].append(nova_bs)
             else:
@@ -226,25 +234,31 @@ class Aglomerado:
                 print('Capacidade de Atendimento Inexistente no Aglomerado {}:'.format(self.id))
                 print('Realizando a implantação de uma BS para criação de cobertura básica')
                 if self.tipo_aglomerado == 'Sede':
-                    nova_bs = BS(0, TipoBS.MACRO_4G, ano, False)
+                    ponto = get_ponto_aleatorio()
+                    nova_bs = BS(0, TipoBS.MACRO_4G, ponto, ano, True, False)
                     self.adicionar_BS(nova_bs)
                     print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo,
                                                                               nova_bs.tipo_BS.tecnologia))
                 else:
-                    diff_macro = abs((TipoBS.MACRO_4G.cobertura_por_setor * TipoBS.MACRO_4G.setores) - self.area_aglomerado)
-                    diff_micro = abs((TipoBS.MICRO_4G.cobertura_por_setor * TipoBS.MICRO_4G.setores) - self.area_aglomerado)
+                    diff_macro = abs(
+                        (TipoBS.MACRO_4G.cobertura_por_setor * TipoBS.MACRO_4G.setores) - self.area_aglomerado)
+                    diff_micro = abs(
+                        (TipoBS.MICRO_4G.cobertura_por_setor * TipoBS.MICRO_4G.setores) - self.area_aglomerado)
+                    ponto = get_ponto_aleatorio()
                     if diff_macro < diff_micro:
-                        nova_bs = BS(0, TipoBS.MACRO_4G, ano, False)
+                        nova_bs = BS(0, TipoBS.MACRO_4G, ponto, ano, True, False)
                     else:
-                        nova_bs = BS(0, TipoBS.MICRO_4G, ano, False)
+                        nova_bs = BS(0, TipoBS.MICRO_4G, ponto, ano, True, False)
 
-                    self.lista_bs['implantacao_macro'].append( BS(0, TipoBS.MACRO_4G, ano, False) )
-                    self.lista_bs['implantacao_hetnet'].append( nova_bs )
+                    ponto = get_ponto_aleatorio()
+                    self.lista_bs['implantacao_macro'].append(BS(0, TipoBS.MACRO_4G, ponto, ano, True, False))
+                    self.lista_bs['implantacao_hetnet'].append(nova_bs)
 
                     print('Estratégia de Implantação Macro Only:')
                     print('Implantação de uma Macro BS com tecnologia 4G')
                     print('Estratégia de Implantação HetNet:')
-                    print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo, nova_bs.tipo_BS.tecnologia))
+                    print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo,
+                                                                              nova_bs.tipo_BS.tecnologia))
                     print()
 
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
@@ -274,7 +288,8 @@ class Aglomerado:
                 teste_condicao = True
                 while teste_condicao:
                     teste_condicao = self.__checa_possui_bs_atualizavel(ano, 'Macro')
-                    print('É possível o upgrade de BSs na Estratégia de Implantação Macro Only? {}'.format(teste_condicao))
+                    print('É possível o upgrade de BSs na Estratégia de Implantação Macro Only? {}'.format(
+                        teste_condicao))
 
                     if teste_condicao is True:
                         print('Executa atualizacoes de Macro BSs')
@@ -319,3 +334,78 @@ class Aglomerado:
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
             self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro
             self.capacidade_atendimento_rede_acesso['implantacao_hetnet'][ano] = capacidade_atendimento_femto
+
+    def _calcula_dimensionamento_rede_transporte_fibra(self, lista_bs):
+        total_bs = np.zeros(self.tempo_analise)
+        quantidadade_fibra_instalada = np.zeros(self.tempo_analise)
+        quantidade_modem_pon = np.zeros(self.tempo_analise)
+
+        # Calcula a quantidade acumulada de BSs por ano
+        for bs in lista_bs:
+            for ano in range(bs.ano, self.tempo_analise):
+                total_bs[ano] += 1
+
+        # Calcula as implantaçãoes de de fibra (km) e modems PON por ano
+        max_numero_bs = -99.0
+        for ano, total_ano in enumerate(total_bs):
+            if total_ano > max_numero_bs:
+                if total_ano == 1:
+                    quantidadade_fibra_instalada[ano] = 0
+                    quantidade_modem_pon[ano] = 1
+                    max_numero_bs = total_ano
+                else:
+                    max_numero_bs = total_ano
+                    hub = busca_bs_hub(self.lista_bs['implantacao_macro'])
+                    quantidade_modem_pon[ano] = total_ano - np.sum(quantidade_modem_pon[:ano])
+                    bs_nao_hub = busca_bs_nao_hub(self.lista_bs['implantacao_macro'], ano)
+                    for bs in bs_nao_hub:
+                        quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs, hub)
+
+        return quantidadade_fibra_instalada, quantidade_modem_pon
+
+    def _calcula_dimensionamento_rede_transporte_microondas(self, lista_bs):
+        total_bs = np.zeros(self.tempo_analise)
+        quantidade_antena_mw_pt_pt = np.zeros(self.tempo_analise)
+        quantidade_antena_mw_pt_mp = np.zeros(self.tempo_analise)
+
+        # Calcula a quantidade acumulada de BSs por ano
+        for bs in lista_bs:
+            for ano in range(bs.ano, self.tempo_analise):
+                total_bs[ano] += 1
+
+        print('Total Acumulado de BSs por Ano: ')
+        print(total_bs)
+
+        # Calcula as implantaçãoes de de fibra (km) e modems PON por ano
+        max_numero_bs = -99.0
+        for ano, total_ano in enumerate(total_bs):
+            if total_ano > max_numero_bs:
+                if total_ano == 1:
+                    quantidade_antena_mw_pt_pt[ano] = 0
+                    max_numero_bs = total_ano
+                else:
+                    max_numero_bs = total_ano
+                    quantidade_antena_mw_pt_pt[ano] = total_ano - np.sum(quantidade_antena_mw_pt_pt[:ano]) -1
+
+        print('Total de Antenas MW Pt-Pt: ')
+        print(quantidade_antena_mw_pt_pt)
+        print()
+
+        # Substituir esse cálculo para quando o número de BS for maior que 17 dentro do aglomerado
+        # O número máximo de clientes por antena microwave Pt-Mp é 16
+        quantidade_antena_mw_pt_mp[0] = 1
+
+        return quantidade_antena_mw_pt_pt, quantidade_antena_mw_pt_mp
+
+    def calcula_dimensionamento_rede_transporte(self):
+        qtd_fibra_instalada_macro_only, qtd_modem_pon_macro_only = \
+            self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_macro'])
+
+        qtd_fibra_instalada_hetnet, qtd_modem_pon_hetnet = \
+            self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
+
+        qtd_antena_mw_pt_pt_macro_only, qtd_antena_mw_pt_mt_macro_only = \
+            self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_macro'])
+
+        qtd_antena_mw_pt_pt_macro_only, qtd_antena_mw_pt_mt_macro_only = \
+            self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_hetnet'])

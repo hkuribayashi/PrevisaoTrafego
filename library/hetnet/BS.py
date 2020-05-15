@@ -3,10 +3,12 @@ from library.hetnet.TipoBS import TipoBS
 
 
 class BS:
-    def __init__(self, id_, tipo, ano=0, existenncia_previa=True):
+    def __init__(self, id_, tipo, ponto, ano=0, hub_bs=False, existenncia_previa=False):
         self.id = id_
         self.tipo_BS = tipo
+        self.ponto = ponto
         self.ano = ano
+        self.hub_bs = hub_bs
         self.existencia_previa = existenncia_previa
         self.atualizacoes = list()
 
@@ -26,3 +28,9 @@ class BS:
             self.tipo_BS = atualizacao
             self.atualizacoes.append(AtualizacaoBS(atualizacao, ano))
             return True
+
+    def __str__(self):
+        return "id={}, tipo={}, ano={}, ponto={}, hub_bs={}, existencia_previa={}".format(self.id, self.tipo_BS,
+                                                                                          self.ano, self.ponto,
+                                                                                          self.hub_bs,
+                                                                                          self.existencia_previa)

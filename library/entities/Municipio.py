@@ -48,6 +48,10 @@ class Municipio():
         for ag in self.aglomerados:
             ag.calcula_dimensionamento_rede_acesso()
 
+    def calcula_dimensionamento_rede_transporte(self):
+        for ag in self.aglomerados:
+            ag.calcula_dimensionamento_rede_transporte()
+
     def debug(self):
         time = np.arange(self.tempo_analise)
         demanda_trafego_total = np.zeros(self.tempo_analise)
