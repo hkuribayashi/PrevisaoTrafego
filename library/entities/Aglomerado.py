@@ -46,6 +46,16 @@ class Aglomerado:
         self.capacidade_atendimento_rede_acesso = dict(implantacao_macro=list(), implantacao_hetnet=list())
         self.quantidade_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
 
+        self.qtd_fibra_instalada_macro_only = 0.0
+        self.qtd_modem_pon_macro_only = 0.0
+        self.qtd_fibra_instalada_hetnet =0.0
+        self.qtd_modem_pon_hetnet = 0.0
+        self.qtd_antena_mw_pt_pt_macro_only = 0.0
+        self.qtd_antena_mw_pt_mp_macro_only = 0.0
+        self.qtd_antena_mw_pt_pt_hetnet = 0.0
+        self.qtd_antena_mw_pt_mp_hetnet = 0.0
+
+
     def adicionar_BS(self, BS):
         self.lista_bs['implantacao_macro'].append(BS)
         self.lista_bs['implantacao_hetnet'].append(cp.deepcopy(BS))
@@ -391,21 +401,23 @@ class Aglomerado:
         print(quantidade_antena_mw_pt_pt)
         print()
 
-        # Substituir esse cálculo para quando o número de BS for maior que 17 dentro do aglomerado
-        # O número máximo de clientes por antena microwave Pt-Mp é 16
+        '''
+        Substituir esse cálculo para quando o número de BS for maior que 17 dentro do aglomerado
+        O número máximo de antenas Pt-Pt por antena microwave Pt-Mp é 16
+        '''
         quantidade_antena_mw_pt_mp[0] = 1
 
         return quantidade_antena_mw_pt_pt, quantidade_antena_mw_pt_mp
 
     def calcula_dimensionamento_rede_transporte(self):
-        qtd_fibra_instalada_macro_only, qtd_modem_pon_macro_only = \
+        self.qtd_fibra_instalada_macro_only, self.qtd_modem_pon_macro_only = \
             self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_macro'])
 
-        qtd_fibra_instalada_hetnet, qtd_modem_pon_hetnet = \
+        self.qtd_fibra_instalada_hetnet, self.qtd_modem_pon_hetnet = \
             self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
 
-        qtd_antena_mw_pt_pt_macro_only, qtd_antena_mw_pt_mt_macro_only = \
+        self.qtd_antena_mw_pt_pt_macro_only, self.qtd_antena_mw_pt_mp_macro_only = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_macro'])
 
-        qtd_antena_mw_pt_pt_macro_only, qtd_antena_mw_pt_mt_macro_only = \
+        self.qtd_antena_mw_pt_pt_hetnet, self.qtd_antena_mw_pt_mp_hetnet = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_hetnet'])
