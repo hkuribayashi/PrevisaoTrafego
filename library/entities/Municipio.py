@@ -1,5 +1,9 @@
+import math
+
 import numpy as np
 import matplotlib.pyplot as plt
+
+from library.entities.CentralOffice import CentralOffice
 
 
 class Municipio():
@@ -26,7 +30,9 @@ class Municipio():
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
         self.antena_mw_implantada_pt_mp = \
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
+        self.olt_implantada = dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
         self.antenas_pt_pt = np.zeros(tempo_analise)
+        self.co = CentralOffice()
 
     def adicionar_aglomerado(self, novo_aglomerado):
         self.aglomerados.append(novo_aglomerado)
@@ -77,8 +83,13 @@ class Municipio():
 
     def calcula_dimensionamento_rede_transporte(self):
         # Calcula o transporte dentro de cada aglomerado
+        total_macro = 0.0
+        total_hetnet = 0.0
         for ag in self.aglomerados:
+            total_macro += len(ag.lista_bs['implantacao_macro'])
+            total_hetnet += len(ag.lista_bs['implantacao_hetnet'])
             ag.calcula_dimensionamento_rede_transporte()
+
 
         '''
         Calcula o tranporte entre os aglomerados
@@ -94,6 +105,13 @@ class Municipio():
 
         # qtd_aglomerados_nao_folha deve ser o numero de aglomerados que não são "folha" com exceção da sede
         qt_aglomerados_nao_folha = len(self.aglomerados) - qtd_aglomerados_folha - 1
+
+        qtd_portas_sw_carrier = 24
+        qtd_sw_carrier = np.ceil(qtd_portas_sw_carrier/qt_aglomerados_nao_folha)
+
+        qtd_onu_por_olt = 32
+        self.olt_implantada['implantacao_macro'][0] = math.ceil(total_macro/qtd_onu_por_olt)
+        self.olt_implantada['implantacao_hetnet'][0] = math.ceil(total_hetnet/qtd_onu_por_olt)
 
         '''
         Calculo da quantidade de antenas MW Pt-Pt entre os aglomerados
