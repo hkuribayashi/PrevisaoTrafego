@@ -159,6 +159,21 @@ class Municipio():
             self.antena_mw_implantada_pt_mp['implantacao_macro'] += ag.qtd_antena_mw_pt_mp_macro_only
             self.antena_mw_implantada_pt_mp['implantacao_hetnet'] += ag.qtd_antena_mw_pt_mp_hetnet
 
+    def calcula_dimensionamento_centraloffice(self):
+        demanda_trafego_total = np.zeros(self.tempo_analise)
+        servidores_implantados_por_ano_datacenter = np.zeros(self.tempo_analise)
+        for ag in self.aglomerados:
+            demanda_trafego_total += ag.demanda_trafego_por_area * ag.area_aglomerado
+
+        # A partir da demanda de tráfego total do município é necessário estimar a infraestrutura do micro datacenter
+        # Assumindo a capacidade de atendimento de 800 Mbps por servidor
+        for ano, demanda_ano in enumerate(demanda_trafego_total):
+            if ano == 0:
+                servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano/800)
+            else:
+                servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano / 800) \
+                                                                 - sum(servidores_implantados_por_ano_datacenter[:ano])
+
     def debug(self):
         time = np.arange(self.tempo_analise)
         demanda_trafego_total = np.zeros(self.tempo_analise)
