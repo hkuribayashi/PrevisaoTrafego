@@ -376,7 +376,6 @@ class Aglomerado:
     def _calcula_dimensionamento_rede_transporte_microondas(self, lista_bs):
         total_bs = np.zeros(self.tempo_analise)
         quantidade_antena_mw_pt_pt = np.zeros(self.tempo_analise)
-        quantidade_antena_mw_pt_mp = np.zeros(self.tempo_analise)
 
         # Calcula a quantidade acumulada de BSs por ano
         for bs in lista_bs:
@@ -396,20 +395,16 @@ class Aglomerado:
                 else:
                     max_numero_bs = total_ano
                     #Nesse caso, dentro do aglomerado chama-se a BS que não é Hub de ponto a ponto;
-                    quantidade_antena_mw_pt_pt[ano] = total_ano - np.sum(quantidade_antena_mw_pt_pt[:ano]) -1
+                    quantidade_antena_mw_pt_pt[ano] = total_ano - np.sum(quantidade_antena_mw_pt_pt[:ano]) - 1
+
+        # Multiplico por 02 (dois) a quantidade de antennas pt-pt, pois é um par, para cada BS
+        quantidade_antena_mw_pt_pt = quantidade_antena_mw_pt_pt * 2
 
         print('Total de Antenas MW Pt-Pt: ')
         print(quantidade_antena_mw_pt_pt)
         print()
 
-        '''
-        Substituir esse cálculo para quando o número de BS for maior que 17 dentro do aglomerado
-        O número máximo de antenas Pt-Pt por antena microwave Pt-Mp é 16. 
-        Nesse caso, terá que adaptar a rede de rádio para que o agrupamento possua mais de 1 hub
-        '''
-        quantidade_antena_mw_pt_mp[0] = 1
-
-        return quantidade_antena_mw_pt_pt, quantidade_antena_mw_pt_mp
+        return quantidade_antena_mw_pt_pt
 
     def calcula_dimensionamento_rede_transporte(self):
         self.qtd_fibra_instalada_macro_only, self.qtd_modem_pon_macro_only = \
