@@ -28,9 +28,10 @@ class Municipio():
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
         self.antena_mw_implantada_pt_pt = \
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
-        self.antena_mw_implantada_pt_mp = \
+        self.sw_carrier_mw_implantada = \
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
-        self.olt_implantada = dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
+        self.olt_implantada = \
+            dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
         self.antenas_pt_pt = np.zeros(tempo_analise)
         self.co = CentralOffice()
 
@@ -156,8 +157,8 @@ class Municipio():
             self.antena_mw_implantada_pt_pt['implantacao_hetnet'] += ag.qtd_antena_mw_pt_pt_hetnet
 
             # Somatório do quantitativo de Antenas MW pt-Mp baixa capacidade (dentro do aglomerado)
-            self.antena_mw_implantada_pt_mp['implantacao_macro'] += ag.qtd_antena_mw_pt_mp_macro_only
-            self.antena_mw_implantada_pt_mp['implantacao_hetnet'] += ag.qtd_antena_mw_pt_mp_hetnet
+            self.sw_carrier_mw_implantada['implantacao_macro'] += ag.qtd_sw_carrier_mw_macro_only
+            self.sw_carrier_mw_implantada['implantacao_hetnet'] += ag.qtd_sw_carrier_mw_hetnet
 
     def calcula_dimensionamento_centraloffice(self):
         demanda_trafego_total = np.zeros(self.tempo_analise)

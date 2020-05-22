@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import copy as cp
 
@@ -46,15 +48,17 @@ class Aglomerado:
         self.capacidade_atendimento_rede_acesso = dict(implantacao_macro=list(), implantacao_hetnet=list())
         self.quantidade_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
 
+        # Equipamentos Fibra (PON)
         self.qtd_fibra_instalada_macro_only = 0.0
         self.qtd_modem_pon_macro_only = 0.0
-        self.qtd_fibra_instalada_hetnet =0.0
+        self.qtd_fibra_instalada_hetnet = 0.0
         self.qtd_modem_pon_hetnet = 0.0
-        self.qtd_antena_mw_pt_pt_macro_only = 0.0
-        self.qtd_antena_mw_pt_mp_macro_only = 0.0
-        self.qtd_antena_mw_pt_pt_hetnet = 0.0
-        self.qtd_antena_mw_pt_mp_hetnet = 0.0
 
+        # Equipamentos MicroWave (MW)
+        self.qtd_antena_mw_pt_pt_macro_only = 0.0
+        self.qtd_sw_carrier_mw_macro_only = 0.0
+        self.qtd_antena_mw_pt_pt_hetnet = 0.0
+        self.qtd_sw_carrier_mw_hetnet = 0.0
 
     def adicionar_BS(self, BS):
         self.lista_bs['implantacao_macro'].append(BS)
@@ -365,17 +369,23 @@ class Aglomerado:
                     max_numero_bs = total_ano
                 else:
                     max_numero_bs = total_ano
-                    hub = busca_bs_hub(self.lista_bs['implantacao_macro'])#nesse caso é a BS principal, agregadora de tráfego
+                    hub = busca_bs_hub(
+                        self.lista_bs['implantacao_macro'])  # nesse caso é a BS principal, agregadora de tráfego
                     quantidade_modem_pon[ano] = total_ano - np.sum(quantidade_modem_pon[:ano])
                     bs_nao_hub = busca_bs_nao_hub(self.lista_bs['implantacao_macro'], ano)
                     for bs in bs_nao_hub:
-                        quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs, hub)#a distancia esta em metros
+                        quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs,
+                                                                                    hub)  # a distancia esta em metros
 
         return quantidadade_fibra_instalada, quantidade_modem_pon
 
     def _calcula_dimensionamento_rede_transporte_microondas(self, lista_bs):
         total_bs = np.zeros(self.tempo_analise)
         quantidade_antena_mw_pt_pt = np.zeros(self.tempo_analise)
+        quantidade_sw_carrier_mw = np.zeros(self.tempo_analise)
+
+        # Quantidade de portas por Switch
+        quantidade_portas_sw_carrier = 12
 
         # Calcula a quantidade acumulada de BSs por ano
         for bs in lista_bs:
@@ -394,17 +404,23 @@ class Aglomerado:
                     max_numero_bs = total_ano
                 else:
                     max_numero_bs = total_ano
-                    #Nesse caso, dentro do aglomerado chama-se a BS que não é Hub de ponto a ponto;
+                    # Nesse caso, dentro do aglomerado chama-se a BS que não é Hub de ponto a ponto;
                     quantidade_antena_mw_pt_pt[ano] = total_ano - np.sum(quantidade_antena_mw_pt_pt[:ano]) - 1
+            if np.sum(quantidade_sw_carrier_mw[:ano]) * quantidade_portas_sw_carrier < total_ano:
+                quantidade_sw_carrier_mw[ano] = np.ceil(total_ano / quantidade_portas_sw_carrier) - \
+                                                np.sum(quantidade_sw_carrier_mw[:ano])
 
         # Multiplico por 02 (dois) a quantidade de antennas pt-pt, pois é um par, para cada BS
         quantidade_antena_mw_pt_pt = quantidade_antena_mw_pt_pt * 2
 
-        print('Total de Antenas MW Pt-Pt: ')
+        print('Total de Antenas MW Pt-Pt Implantadas por Ano:')
         print(quantidade_antena_mw_pt_pt)
+
+        print('Total de SW Carrier Implantados por Ano:')
+        print(quantidade_sw_carrier_mw)
         print()
 
-        return quantidade_antena_mw_pt_pt
+        return quantidade_antena_mw_pt_pt, quantidade_sw_carrier_mw
 
     def calcula_dimensionamento_rede_transporte(self):
         self.qtd_fibra_instalada_macro_only, self.qtd_modem_pon_macro_only = \
@@ -413,8 +429,8 @@ class Aglomerado:
         self.qtd_fibra_instalada_hetnet, self.qtd_modem_pon_hetnet = \
             self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
 
-        self.qtd_antena_mw_pt_pt_macro_only, self.qtd_antena_mw_pt_mp_macro_only = \
+        self.qtd_antena_mw_pt_pt_macro_only, self.qtd_sw_carrier_mw_macro_only = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_macro'])
 
-        self.qtd_antena_mw_pt_pt_hetnet, self.qtd_antena_mw_pt_mp_hetnet = \
+        self.qtd_antena_mw_pt_pt_hetnet, self.qtd_sw_carrier_mw_hetnet = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_hetnet'])
