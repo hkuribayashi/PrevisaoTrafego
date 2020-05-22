@@ -365,11 +365,11 @@ class Aglomerado:
                     max_numero_bs = total_ano
                 else:
                     max_numero_bs = total_ano
-                    hub = busca_bs_hub(self.lista_bs['implantacao_macro'])
+                    hub = busca_bs_hub(self.lista_bs['implantacao_macro'])#nesse caso é a BS principal, agregadora de tráfego
                     quantidade_modem_pon[ano] = total_ano - np.sum(quantidade_modem_pon[:ano])
                     bs_nao_hub = busca_bs_nao_hub(self.lista_bs['implantacao_macro'], ano)
                     for bs in bs_nao_hub:
-                        quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs, hub)
+                        quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs, hub)#a distancia esta em metros
 
         return quantidadade_fibra_instalada, quantidade_modem_pon
 
@@ -386,7 +386,7 @@ class Aglomerado:
         print('Total Acumulado de BSs por Ano: ')
         print(total_bs)
 
-        # Calcula as implantaçãoes de de fibra (km) e modems PON por ano
+        # Calcula as implantaçãoes de Antenas microondas
         max_numero_bs = -99.0
         for ano, total_ano in enumerate(total_bs):
             if total_ano > max_numero_bs:
@@ -395,6 +395,7 @@ class Aglomerado:
                     max_numero_bs = total_ano
                 else:
                     max_numero_bs = total_ano
+                    #Nesse caso, dentro do aglomerado chama-se a BS que não é Hub de ponto a ponto;
                     quantidade_antena_mw_pt_pt[ano] = total_ano - np.sum(quantidade_antena_mw_pt_pt[:ano]) -1
 
         print('Total de Antenas MW Pt-Pt: ')
@@ -403,7 +404,8 @@ class Aglomerado:
 
         '''
         Substituir esse cálculo para quando o número de BS for maior que 17 dentro do aglomerado
-        O número máximo de antenas Pt-Pt por antena microwave Pt-Mp é 16
+        O número máximo de antenas Pt-Pt por antena microwave Pt-Mp é 16. 
+        Nesse caso, terá que adaptar a rede de rádio para que o agrupamento possua mais de 1 hub
         '''
         quantidade_antena_mw_pt_mp[0] = 1
 
