@@ -32,6 +32,7 @@ class Municipio():
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
         self.olt_implantada = \
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
+        self.sw_agregacao = np.zeros(tempo_analise)
         self.antenas_pt_pt = np.zeros(tempo_analise)
         self.co = CentralOffice()
 
@@ -161,7 +162,10 @@ class Municipio():
             self.sw_carrier_mw_implantada['implantacao_hetnet'] += ag.qtd_sw_carrier_mw_hetnet
 
     def calcula_dimensionamento_centraloffice(self):
+        print('Dimensionamento de Central Office')
         demanda_trafego_total = np.zeros(self.tempo_analise)
+
+        # Calcula a quantidade de servidores de rede pra rodar as funções de SDN
         servidores_implantados_por_ano_datacenter = np.zeros(self.tempo_analise)
         for ag in self.aglomerados:
             demanda_trafego_total += ag.demanda_trafego_por_area * ag.area_aglomerado
@@ -174,6 +178,59 @@ class Municipio():
             else:
                 servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano / 800) \
                                                                  - sum(servidores_implantados_por_ano_datacenter[:ano])
+        print('Quantidade de Servidores por Ano')
+        print(servidores_implantados_por_ano_datacenter)
+
+        '''
+        Calcula a quantidade de switches de agregação na opção de transporte por microwave. 
+        O total de switches é proporcional ao número de nós não folha, isto é, a qtd de aglomerados que conectam 
+        diretamente na sede. Assumindo mais uma vez a topologia Sede -> Ubim -> Nova Maracanã temos apenas 01 aglomerado
+        "Nao Folha". Vamos considerar que cada SW de Agregação possui 12 Portas.
+        O cálculo é em função da AGM
+        '''
+
+        qtd_portas_sw_agregacao = 12
+        qtd_aglomerados_nao_folha = 1 # A partir do pressuposto acima, esse aglomerado seria Ubim
+
+        # Na equação abaixo é somado + 1 para considerar a porta utilizada pelas antenas agregadas da Sede
+        # Considerar a variável qt_sw_agregacao como atributo da classe Municipio
+        qt_sw_agregacao = math.ceil( (qtd_aglomerados_nao_folha + 1)/qtd_portas_sw_agregacao )
+
+        # Todos os SW são implantados no Ano 0, pq dependem da topologia da AGM e não do quantitativo de BS
+        # Assim o mesmo valor ou array (self.sw_agregacao) deve ser considerado para as opções de Macro Only e Hetnet
+        self.sw_agregacao[0] = qt_sw_agregacao
+
+        print('Quantidade de SW de Agregação MW:')
+        print(self.sw_agregacao)
+
+        '''
+        Calcula a quantidade de OLTs que devem ser instaladas no Central Office
+        O cálculo é proporcional ao número de BSs, que varia entre as implantações macro only e hetnet dentro de 
+        cada aglomerado  
+        '''
+
+        print('Quantidade Modem PON Implado Acumulado por Ano:')
+        print('Estratégia Macro Only')
+        print(self.modem_pon_implantado['implantacao_macro'])
+        print('Estratégia Hetnet')
+        print(self.modem_pon_implantado['implantacao_hetnet'])
+
+        '''
+        A partir dos trabalho de Fiorani et al (2016), seria possível ligar até 40 BS por OLT,
+        desta forma vamos assumir que vamos realizar a implantação de 01 OLT no Ano 0.
+        Caso haja um cenário com um número maior de aglomerados ou BS, seria necessário realziar um cálculo
+        analítico em função da variaveis modem_pon_implantado (conforme print acima).
+        '''
+
+        self.olt_implantada['implantacao_macro'][0] = 1
+        self.olt_implantada['implantacao_hetnet'][0] = 1
+
+        print('Quantidade de OLTs implantadas por Ano:')
+        print('Estratégia Macro Only')
+        print(self.olt_implantada['implantacao_macro'])
+        print('Estratégia Hetnet')
+        print(self.olt_implantada['implantacao_hetnet'])
+        print()
 
     def debug(self):
         time = np.arange(self.tempo_analise)

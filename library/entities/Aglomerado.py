@@ -350,6 +350,7 @@ class Aglomerado:
             self.capacidade_atendimento_rede_acesso['implantacao_hetnet'][ano] = capacidade_atendimento_femto
 
     def _calcula_dimensionamento_rede_transporte_fibra(self, lista_bs):
+        print('Implantação Fibra Aglomerado {}:'.format(self.id))
         total_bs = np.zeros(self.tempo_analise)
         quantidadade_fibra_instalada = np.zeros(self.tempo_analise)
         quantidade_modem_pon = np.zeros(self.tempo_analise)
@@ -358,6 +359,9 @@ class Aglomerado:
         for bs in lista_bs:
             for ano in range(bs.ano, self.tempo_analise):
                 total_bs[ano] += 1
+
+        print('Total Acumulado de BSs por Ano: ')
+        print(total_bs)
 
         # Calcula as implantaçãoes de de fibra (km) e modems PON por ano
         max_numero_bs = -99.0
@@ -376,10 +380,17 @@ class Aglomerado:
                     for bs in bs_nao_hub:
                         quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs,
                                                                                     hub)  # a distancia esta em metros
+        print('Quantidade de Fibra Instalada por Ano')
+        print(quantidadade_fibra_instalada)
+
+        print('Quantidade de Modem PON por Ano')
+        print(quantidade_modem_pon)
+        print()
 
         return quantidadade_fibra_instalada, quantidade_modem_pon
 
     def _calcula_dimensionamento_rede_transporte_microondas(self, lista_bs):
+        print('Implantação Microwave Aglomerado {}:'.format(self.id))
         total_bs = np.zeros(self.tempo_analise)
         quantidade_antena_mw_pt_pt = np.zeros(self.tempo_analise)
         quantidade_sw_carrier_mw = np.zeros(self.tempo_analise)
