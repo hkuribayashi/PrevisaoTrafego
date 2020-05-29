@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+'''
+Esta classe deve ajudar o dimensionamento de despesas de instalação de equipamentos
+Em ambos os casos da implantação, tais despesas são relativas ao custo de instalação dos equipamentos envolvidos
+'''
+
+
 class InstalacaoEquipamento(Enum):
     DESLOCAMENTO = ('Tempo de Deslocamento para o Aglomerado', 1.0, 'horas/trecho')
     G_ETHERNET_SWITCH = ('Tempo de Instalação G-Ethernet Switch', 1.0, 'horas/switch')
