@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 from library.entities.Ponto import Ponto
 
@@ -43,7 +44,25 @@ def busca_bs_nao_hub(lista_bs, ano):
             result.append(bs)
     return result
 
+
 def busca_bs_hub(lista_bs):
     for bs in lista_bs:
         if bs.hub_bs is True:
             return bs
+
+
+def variacao_preco_linear(capital, taxa, periodo):
+    montante = np.zeros(periodo)
+    for ano in range(len(montante)):
+        montante[ano] = capital * (1+taxa)**ano
+    return montante
+
+
+def variacao_preco_composto(capital, taxa, periodo):
+    montante = np.zeros(periodo)
+    for ano in range(len(montante)):
+        if ano == 0:
+            montante[ano] = capital
+        else:
+            montante[ano] = capital + (taxa * montante[ano-1])
+    return montante
