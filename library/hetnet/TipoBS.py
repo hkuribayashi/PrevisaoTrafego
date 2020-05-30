@@ -28,3 +28,6 @@ class TipoBS(Enum):
         self.capacidade = capacidade
         self.atualizavel = atualizavel
         self.cobertura_por_setor = cobertura_por_setor
+
+    def __str__(self):
+        return "TipoBS tipo={}, tec={}".format(self.tipo, self.tecnologia)

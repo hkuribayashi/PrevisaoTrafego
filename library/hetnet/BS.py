@@ -29,6 +29,22 @@ class BS:
             self.atualizacoes.append(AtualizacaoBS(atualizacao, ano))
             return True
 
+    '''
+    Este método foi criado para evitar que se contabilizem duas atualizações de BS no mesmo ano
+    Não sei se não seria melhor utilizar ao invés da list uma outra estrutura que não permitisse elementos duplicados,
+    porém esta questão fica para uma melhoria futura. 
+    '''
+    def ajuste_atualizacoesBS(self):
+        lista_ajustada = list()
+        ultimo_ano = -1
+        for at in self.atualizacoes:
+            if at.ano != ultimo_ano:
+                ultimo_ano = at.ano
+                lista_ajustada.append(at)
+            else:
+                lista_ajustada[-1] = at
+        self.atualizacoes = lista_ajustada
+
     def __str__(self):
         return "id={}, tipo={}, ano={}, ponto={}, hub_bs={}, existencia_previa={}".format(self.id, self.tipo_BS,
                                                                                           self.ano, self.ponto,

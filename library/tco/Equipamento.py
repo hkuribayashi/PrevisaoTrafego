@@ -1,5 +1,7 @@
 from enum import Enum
 
+from library.hetnet.TipoBS import TipoBS
+
 
 class Equipamento(Enum):
 
@@ -23,6 +25,16 @@ class Equipamento(Enum):
         self.preco_unitario = preco_unitario
         self.unidade_precificacao = unidade_precificacao
         self.desconto = desconto
+
+    @staticmethod
+    def get_preco_atualizacao(tipo_atualizacaoBS):
+        switcher = {
+            'MACRO_3G': 10.0,
+            'MACRO_4G': 20.0,
+            'MACRO_45G': 20.0,
+            'MICRO_45G': 20.0
+        }
+        return switcher.get(tipo_atualizacaoBS.name, -99.0)
 
     def __str__(self):
         return 'Equipamento nome={}, preco_unitario={}, unidade_precificacao={}, desconto={}'.format(self.nome, self.preco_unitario, self.unidade_precificacao, self.desconto)

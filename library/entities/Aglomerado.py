@@ -373,12 +373,11 @@ class Aglomerado:
                     max_numero_bs = total_ano
                 else:
                     max_numero_bs = total_ano
-                    hub = busca_bs_hub(
-                        self.lista_bs['implantacao_macro'])  # nesse caso é a BS principal, agregadora de tráfego
+                    hub = busca_bs_hub(lista_bs)  # nesse caso é a BS principal, agregadora de tráfego
                     quantidade_modem_pon[ano] = total_ano - np.sum(quantidade_modem_pon[:ano])
-                    bs_nao_hub = busca_bs_nao_hub(self.lista_bs['implantacao_macro'], ano)
+                    bs_nao_hub = busca_bs_nao_hub(lista_bs, ano)
                     for bs in bs_nao_hub:
-                        quantidadade_fibra_instalada[ano] = get_distancia_manhattan(bs,
+                        quantidadade_fibra_instalada[ano] += get_distancia_manhattan(bs,
                                                                                     hub)  # a distancia esta em metros
         print('Quantidade de Fibra Instalada por Ano')
         print(quantidadade_fibra_instalada)
