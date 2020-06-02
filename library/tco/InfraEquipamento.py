@@ -19,6 +19,16 @@ class InfraEquipamento(Enum):
             self.nome, self.preco_unitario, self.unidade_precificacao)
 
 
+class InfraRadio(InfraEquipamento):
+
+    TORRE_MACRO = ('Despesas de Implantação de Torre Macro Cell', 200.0, '$/torre')
+    TORRE_MICRO = ('Despesas de Implantação de Torre Micro Cell', 100.0, '$/torre')
+    TORRE_SMALL = ('Despesas de Implantação de Torre Macro Cell', 0.0, '$/torre')
+
+    def __init__(self, nome, preco_unitario, unidade_precificacao):
+        super().__init__(nome, preco_unitario, unidade_precificacao)
+
+
 class InfraFibra(InfraEquipamento):
 
     FIBRA_AEREA = ('Implantação Fibra Ótica Aérea (Posteada)', 80.0, '$/km')

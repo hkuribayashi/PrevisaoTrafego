@@ -29,10 +29,10 @@ class Equipamento(Enum):
     @staticmethod
     def get_preco_atualizacao(tipo_atualizacaoBS):
         switcher = {
-            'MACRO_3G': 10.0,
-            'MACRO_4G': 20.0,
-            'MACRO_45G': 20.0,
-            'MICRO_45G': 20.0
+            'MACRO_3G': 2000.0,
+            'MACRO_4G': 2000.0,
+            'MACRO_45G': 2000.0,
+            'MICRO_45G': 20000.0
         }
         return switcher.get(tipo_atualizacaoBS.name, -99.0)
 
