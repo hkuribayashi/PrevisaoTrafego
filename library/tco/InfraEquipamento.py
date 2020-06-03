@@ -21,7 +21,7 @@ class InfraEquipamento(Enum):
 
 class InfraRadio(InfraEquipamento):
 
-    TORRE_MACRO = ('Despesas de Implantação de Torre Macro Cell', 200.0, '$/torre')
+    TORRE_MACRO = ('Despesas de Implantação de Torre Macro Cell', 100.0, '$/torre')
     TORRE_MICRO = ('Despesas de Implantação de Torre Micro Cell', 100.0, '$/torre')
     TORRE_SMALL = ('Despesas de Implantação de Torre Macro Cell', 0.0, '$/torre')
 

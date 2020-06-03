@@ -22,7 +22,7 @@ class InstalacaoGeral(Instalacao):
     DESLOCAMENTO = ('Tempo de Deslocamento para o Aglomerado', 18.0, 'horas/trecho')
     G_ETHERNET_SWITCH = ('Tempo de Instalação G-Ethernet Switch', 1.0, 'horas/switch')
     ETHERNET_SWITCH = ('Tempo de Instalação Ethernet Switch', 1.0, 'horas/switch')
-    TECNICO = ('Salário do Técnico de Instalação', 30.0, '$/hora')
+    TECNICO = ('Salário do Técnico de Instalação', 10.0, '$/hora')
 
     def __init__(self, nome, preco_unitario, unidade_medida, quantidade_tecnicos=2):
         super().__init__(nome, preco_unitario, unidade_medida, quantidade_tecnicos)
@@ -30,8 +30,9 @@ class InstalacaoGeral(Instalacao):
 
 class InstalacaoRadio(Instalacao):
 
-    MACRO = ('Custo de Instalação de MBS', 1000.0, '$/unidade')
-    SMALL = ('Custo de Instalação de SBS', 200.0, '$/unidade')
+    MACRO = ('Custo de Instalação de Macro BS', 1000.0, '$/unidade')
+    MICRO = ('Custo de Instalação de Micro BS', 1000.0, '$/unidade')
+    SBS = ('Custo de Instalação de SBS', 200.0, '$/unidade')
 
     ATUALIZACAO_MACRO = ('Custo de Instalação de Atualização de MBS', 100.0, '$/unidade')
     ATUALIZACAO_SMALL = ('Custo de Instalação de Atualização de SBS', 100.0, '$/unidade')

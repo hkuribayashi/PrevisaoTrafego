@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from library.tco.Equipamento import Equipamento
 from library.tco.InfraEquipamento import InfraRadio
@@ -20,13 +21,42 @@ class CAPEX:
 
     def calcula_capex(self):
         for ag in self.municipio.aglomerados:
+            print('CAPEX de Rádio do Aglomerado {}:'.format(ag.id))
             infra, equipamentos = self.__calcula_capex_radio(ag.lista_bs['implantacao_macro'])
             self.capex_radio_macro['infraestrutura'] += infra
             self.capex_radio_macro['equipamentos'] += equipamentos
+            print('Implantação Macro Only')
+            print('CAPEX Infraestrutura:')
+            print(infra)
+            print('CAPEX Equipamentos:')
+            print(equipamentos)
+            print()
+
+            index = np.arange(self.municipio.tempo_analise)
+            width = 0.35
+            plt.bar(index, equipamentos, width, color='r')
+            plt.bar(index, infra, width, bottom=equipamentos, color='b')
+            plt.title('CAPEX Macro - Aglomerado {}'.format(ag.id))
+            plt.legend(labels=['Equipamentos', 'Infraestrutura'])
+            plt.show()
 
             infra, equipamentos = self.__calcula_capex_radio(ag.lista_bs['implantacao_hetnet'])
             self.capex_radio_hetnet['infraestrutura'] += infra
             self.capex_radio_hetnet['equipamentos'] += equipamentos
+            print('Implantação Hetnet')
+            print('CAPEX Infraestrutura:')
+            print(infra)
+            print('CAPEX Equipamentos:')
+            print(equipamentos)
+            print()
+
+            index = np.arange(self.municipio.tempo_analise)
+            width = 0.35
+            plt.bar(index, equipamentos, width, color='r')
+            plt.bar(index, infra, width, bottom=equipamentos, color='b')
+            plt.title('CAPEX Hetnet - Aglomerado {}'.format(ag.id))
+            plt.legend(labels=['Equipamentos', 'Infraestrutura'])
+            plt.show()
 
     def __calcula_capex_radio(self, lista_bs):
         capex_radio_infraesturtura = np.zeros(self.municipio.tempo_analise)
@@ -79,14 +109,20 @@ class CAPEX:
                 # Verifica qual o tipo de BS para contabilizar os custos de atualizacao
                 if b.tipo_BS.tipo is 'Macro':
                     instalacao = InstalacaoRadio.MACRO.preco_unitario
+                    equipamento = Equipamento.MBS.preco_unitario
+                elif b.tipo_BS.tipo is 'Micro':
+                    instalacao = InstalacaoRadio.MICRO.preco_unitario
+                    equipamento = Equipamento.MiBS.preco_unitario
                 else:
-                    instalacao = InstalacaoRadio.SMALL.preco_unitario
+                    instalacao = InstalacaoRadio.SBS.preco_unitario
+                    equipamento = Equipamento.SBS.preco_unitario
 
                 # Contabiliza os custos dos equipamentos de Rádio (Macro ou Small Cell)
-                equipamentos_depreciado_por_ano = Util.variacao_preco_linear(Equipamento.MBS.preco_unitario + instalacao +
-                                                                      despesas_deslocamento,
-                                                                      -0.03,
-                                                                      self.municipio.tempo_analise - b.ano)
+                equipamentos_depreciado_por_ano = Util.variacao_preco_linear(equipamento +
+                                                                             instalacao +
+                                                                             despesas_deslocamento,
+                                                                             -0.03,
+                                                                             self.municipio.tempo_analise - b.ano)
 
                 # Contabiliza os custos de infraestrutura:
                 # Por enquanto, estamos contabilizando apenas os custos de implantação da torre (cell site)

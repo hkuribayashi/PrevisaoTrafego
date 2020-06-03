@@ -20,10 +20,12 @@ p1 = Ponto(10.0, 10.0)
 b1 = BS(1, TipoBS.MACRO_2G, p1, 0, False, True)  # 1 BS do Tipo 2G
 
 p2 = Ponto(20.0, 20.0)
-b2 = BS(2, TipoBS.MACRO_3G, p2, 0, True, True)  # 1 BS do Tipo 3G (BS Hub - central)
+b2 = BS(2, TipoBS.MACRO_2G, p2, 0, False, True)  # 1 BS do Tipo 2G
 
 p3 = Ponto(30.0, 30.0)
-b3 = BS(3, TipoBS.MACRO_2G, p3, 0, False, True)  # 1 BS do Tipo 2G
+b3 = BS(3, TipoBS.MACRO_3G, p3, 0, True, True)  # 1 BS do Tipo 3G (BS Hub - central)
+
+
 
 a3.adicionar_BS(b1)
 a3.adicionar_BS(b2)
