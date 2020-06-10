@@ -32,14 +32,6 @@ class CAPEX:
             print(equipamentos)
             print()
 
-            index = np.arange(self.municipio.tempo_analise)
-            width = 0.35
-            plt.bar(index, equipamentos, width, color='r')
-            plt.bar(index, infra, width, bottom=equipamentos, color='b')
-            plt.title('CAPEX Macro - Aglomerado {}'.format(ag.id))
-            plt.legend(labels=['Equipamentos', 'Infraestrutura'])
-            plt.show()
-
             infra, equipamentos = self.__calcula_capex_radio(ag.lista_bs['implantacao_hetnet'])
             self.capex_radio_hetnet['infraestrutura'] += infra
             self.capex_radio_hetnet['equipamentos'] += equipamentos
@@ -49,14 +41,6 @@ class CAPEX:
             print('CAPEX Equipamentos:')
             print(equipamentos)
             print()
-
-            index = np.arange(self.municipio.tempo_analise)
-            width = 0.35
-            plt.bar(index, equipamentos, width, color='r')
-            plt.bar(index, infra, width, bottom=equipamentos, color='b')
-            plt.title('CAPEX Hetnet - Aglomerado {}'.format(ag.id))
-            plt.legend(labels=['Equipamentos', 'Infraestrutura'])
-            plt.show()
 
     def __calcula_capex_radio(self, lista_bs):
         capex_radio_infraesturtura = np.zeros(self.municipio.tempo_analise)

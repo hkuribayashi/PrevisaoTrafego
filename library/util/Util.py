@@ -51,18 +51,18 @@ def busca_bs_hub(lista_bs):
             return bs
 
 
+def atualizacao_preco_linear(preco_inicial, taxa, periodo):
+    preco_atualizado = np.zeros(periodo)
+    for ano in range(len(preco_atualizado)):
+        if ano == 0:
+            preco_atualizado[ano] = preco_inicial
+        else:
+            preco_atualizado[ano] = preco_inicial + (taxa * preco_atualizado[ano - 1])
+    return preco_atualizado
+
+
 def variacao_preco_linear(capital, taxa, periodo):
     montante = np.zeros(periodo)
     for ano in range(len(montante)):
         montante[ano] = capital * (1+taxa)**ano
-    return montante
-
-
-def variacao_preco_composto(capital, taxa, periodo):
-    montante = np.zeros(periodo)
-    for ano in range(len(montante)):
-        if ano == 0:
-            montante[ano] = capital
-        else:
-            montante[ano] = capital + (taxa * montante[ano-1])
     return montante
