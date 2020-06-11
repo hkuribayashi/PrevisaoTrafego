@@ -51,7 +51,7 @@ def busca_bs_hub(lista_bs):
             return bs
 
 
-def atualizacao_preco_linear(preco_inicial, taxa, periodo):
+def atualizacao_linear(preco_inicial, taxa, periodo):
     preco_atualizado = np.zeros(periodo)
     for ano in range(len(preco_atualizado)):
         if ano == 0:

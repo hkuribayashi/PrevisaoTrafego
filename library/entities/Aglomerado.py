@@ -7,7 +7,7 @@ from library.entities.Aplicacacao import Aplicacao
 from library.hetnet.TrafegoUsuariosMoveis import TrafegoUsuariosMoveis as TUM
 from library.hetnet.TipoBS import TipoBS
 from library.hetnet.BS import BS
-from library.util.Util import get_gompertz, get_ponto_aleatorio, busca_bs_nao_hub, get_distancia_manhattan, busca_bs_hub
+from library.util.util import get_gompertz, get_ponto_aleatorio, busca_bs_nao_hub, get_distancia_manhattan, busca_bs_hub
 
 
 class Aglomerado:

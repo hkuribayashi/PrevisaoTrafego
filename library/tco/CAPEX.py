@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from library.tco.Equipamento import Equipamento
 from library.tco.InfraEquipamento import InfraRadio
 from library.tco.InstalacaoGeral import InstalacaoRadio, InstalacaoGeral
-from library.util import Util
+from library.util import util
 
 
 class CAPEX:
@@ -73,7 +73,7 @@ class CAPEX:
                                                   InstalacaoGeral.DESLOCAMENTO.quantidade_tecnicos * \
                                                   InstalacaoGeral.TECNICO.preco_unitario
 
-                    preco_atualizado = Util.variacao_preco_linear(Equipamento.get_preco_atualizacao(at.tipo) +
+                    preco_atualizado = util.variacao_preco_linear(Equipamento.get_preco_atualizacao(at.tipo) +
                                                                   instalacao +
                                                                   despesas_deslocamento,
                                                                   -0.03, self.municipio.tempo_analise - at.ano)
@@ -102,7 +102,7 @@ class CAPEX:
                     equipamento = Equipamento.SBS.preco_unitario
 
                 # Contabiliza os custos dos equipamentos de Rádio (Macro ou Small Cell)
-                equipamentos_depreciado_por_ano = Util.variacao_preco_linear(equipamento +
+                equipamentos_depreciado_por_ano = util.variacao_preco_linear(equipamento +
                                                                              instalacao +
                                                                              despesas_deslocamento,
                                                                              -0.03,
@@ -118,7 +118,7 @@ class CAPEX:
                     infraestrutura = InfraRadio.TORRE_SMALL.preco_unitario
 
                 # Realiza o cálculo de depreciação da infraestrutura implantada
-                infraestrutura_depreciada_por_ano = Util.variacao_preco_linear(infraestrutura, -0.03,
+                infraestrutura_depreciada_por_ano = util.variacao_preco_linear(infraestrutura, -0.03,
                                                                                self.municipio.tempo_analise - b.ano)
                 for ano, equipamento_ano in enumerate(equipamentos_depreciado_por_ano):
                     capex_radio_equipamentos[ano + b.ano] += equipamento_ano

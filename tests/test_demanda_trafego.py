@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from library.util.Util import get_gompertz
+from library.util.util import get_gompertz
 
 # Teste para geracao de taxa de usuários de Internet
 a = 0.95
