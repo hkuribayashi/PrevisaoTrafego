@@ -3,11 +3,12 @@ from library.entities.Municipio import Municipio
 from library.entities.Ponto import Ponto
 from library.hetnet.BS import BS
 from library.hetnet.TipoBS import TipoBS
+from library.custos.tco import TCO
 
 # Criando um município a partir dos dados de Faro
 # total_alunos, percentual_ead, total_docentes, percentual_pop_ativa, total_servidores_publicos,
 # total_servidores_publicos_saude, total_veiculos, tempo_analise
-from library.tco.TCO import TCO
+
 
 m1 = Municipio(1, 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 15)
 
@@ -40,5 +41,5 @@ m1.calcula_dimensionamento_rede_transporte()
 m1.calcula_dimensionamento_centraloffice()
 
 tco = TCO(m1)
-# tco.calcula_capex()
+tco.calcula_capex()
 tco.calcula_opex()
