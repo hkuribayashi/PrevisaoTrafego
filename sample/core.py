@@ -1,8 +1,8 @@
-from library.entities.Aglomerado import Aglomerado
+from library.entities.aglomerado import Aglomerado
 from library.entities.municipio import Municipio
 from library.entities.ponto import Ponto
-from library.hetnet.BS import BS
-from library.hetnet.TipoBS import TipoBS
+from library.hetnet.bs import BS
+from library.hetnet.tipo_bs import TipoBS
 from library.custos.tco import TCO
 
 # Criando um município a partir dos dados de Faro

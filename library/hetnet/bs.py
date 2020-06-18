@@ -1,5 +1,5 @@
-from library.hetnet.AtualizacaoBS import AtualizacaoBS
-from library.hetnet.TipoBS import TipoBS
+from library.hetnet.atualizacao_bs import AtualizacaoBS
+from library.hetnet.tipo_bs import TipoBS
 
 
 class BS:

@@ -3,10 +3,10 @@ import math
 import numpy as np
 import copy as cp
 
-from library.entities.Aplicacacao import Aplicacao
-from library.hetnet.TrafegoUsuariosMoveis import TrafegoUsuariosMoveis as TUM
-from library.hetnet.TipoBS import TipoBS
-from library.hetnet.BS import BS
+from library.entities.aplicacacao import Aplicacao
+from library.hetnet.trafego_usuarios import TrafegoUsuariosMoveis as TUM
+from library.hetnet.tipo_bs import TipoBS
+from library.hetnet.bs import BS
 from library.util.util import get_gompertz, get_ponto_aleatorio, busca_bs_nao_hub, get_distancia_manhattan, busca_bs_hub
 
 
