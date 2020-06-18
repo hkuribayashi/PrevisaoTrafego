@@ -9,8 +9,8 @@ from library.entities.CentralOffice import CentralOffice
 class Municipio():
 
     def __init__(self, id_, total_alunos, percentual_alunos_ead, total_docentes, percentual_pop_ativa,
-                 total_servidores_publicos,
-                 total_servidores_publicos_saude, total_veiculos, tempo_analise):
+                 total_servidores_publicos, total_servidores_publicos_saude, total_veiculos, tempo_analise,
+                 tempo_viagem, tempo_medio_indisponibilidade):
         self.id = id_
         self.total_alunos = total_alunos
         self.percentual_alunos_ead = percentual_alunos_ead
@@ -21,6 +21,9 @@ class Municipio():
         self.total_servidores_publicos_saude = total_servidores_publicos_saude
         self.total_veiculos = total_veiculos
         self.tempo_analise = tempo_analise
+        self.tempo_viagem = tempo_viagem
+        self.tempo_medio_indisponibilidade = tempo_medio_indisponibilidade
+
         self.aglomerados = list()
         self.fibra_otica_implantada = \
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))

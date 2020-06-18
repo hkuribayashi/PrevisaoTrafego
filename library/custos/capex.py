@@ -31,7 +31,6 @@ class CAPEX(Enum):
     TEMPO_INSTALACAO_FEMTO = ('Tempo de Instalacao de Femto BS', 'horas', 1.0)
 
     # Despesas relacionada a RH
-    TEMPO_DESLOCAMENTO = ('Tempo de Médio de deslocamento para o Aglomerado', 'horas/trecho', 18.0)
     SALARIO_TECNICO = ('Salário do Técnico de Implantação/Atualização', '$/hora', 12.0)
     QTD_TECNICOS_INSTALACAO = ('Qtd de Técnicos por Time de Instalação', 'técnicos/time', 2.0)
     QTD_TECNICOS_ATUALIZACAO = ('Qtd de Técnicos por Time de Atualização', 'técnicos/time', 1.0)

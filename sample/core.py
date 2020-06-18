@@ -1,16 +1,16 @@
 from library.entities.Aglomerado import Aglomerado
-from library.entities.Municipio import Municipio
-from library.entities.Ponto import Ponto
+from library.entities.municipio import Municipio
+from library.entities.ponto import Ponto
 from library.hetnet.BS import BS
 from library.hetnet.TipoBS import TipoBS
 from library.custos.tco import TCO
 
 # Criando um município a partir dos dados de Faro
 # total_alunos, percentual_ead, total_docentes, percentual_pop_ativa, total_servidores_publicos,
-# total_servidores_publicos_saude, total_veiculos, tempo_analise
+# total_servidores_publicos_saude, total_veiculos, tempo_analise, tempo_viagem
 
 
-m1 = Municipio(1, 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 15)
+m1 = Municipio(1, 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 15, 18.0, 8321.0)
 
 # id, total_habitantes, area_aglomerado, total_agencias_bancarias, total_domicilios, percentagem_pop_ativa, total_cruzamentos
 a1 = Aglomerado(1, 978.0, 0.22, 0.0, 213.0, m1.percentual_pop_ativa, 49.0, 'Nova Maracana')  # Aglomerado Nova Maracana

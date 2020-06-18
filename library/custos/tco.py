@@ -120,7 +120,7 @@ class TCO:
                     # Assumimos també que haverá uma 2 viagens (ida e volta) para cada time de técnicos necessários
                     # Calcula os custos de deslocamento para a atualização das BSs
                     # Contabiliza duas viagens (ida e volta) para a quantidade de técnicos necessária
-                    despesas_deslocamento = CAPEX.TEMPO_DESLOCAMENTO.valor * \
+                    despesas_deslocamento = self.municipio.tempo_viagem * \
                                             CAPEX.QTD_TECNICOS_ATUALIZACAO.valor * \
                                             CAPEX.QTD_TIMES.valor * \
                                             valor_salario_tecnico_ajustado[b.ano] * \
@@ -170,7 +170,7 @@ class TCO:
                 # Instalação: Deslocamento + Mão-de-Obra
                 # Deslocamento:
                 # Contabiliza duas viagens (ida e volta) para a quantidade de técnicos necessária
-                despesas_deslocamento = CAPEX.TEMPO_DESLOCAMENTO.valor * \
+                despesas_deslocamento = self.municipio.tempo_viagem * \
                                         CAPEX.QTD_TECNICOS_INSTALACAO.valor * \
                                         CAPEX.QTD_TIMES.valor * \
                                         valor_salario_tecnico_ajustado[b.ano] * \
@@ -403,7 +403,7 @@ class TCO:
                                                                  self.municipio.tempo_analise)
 
         for linha in range(self.municipio.tempo_analise):
-            opex_radio_viagens[linha][linha] += OPEX.DESLOCAMENTO.valor * \
+            opex_radio_viagens[linha][linha] += self.municipio.tempo_viagem * \
                                                 OPEX.QTD_TECNICOS.valor * \
                                                 OPEX.SALARIO_TECNICO.valor * \
                                                 OPEX.QTD_TIMES.valor * \
@@ -419,4 +419,64 @@ class TCO:
 
     def __calcula_opex_radio_falhas(self, lista_bs):
         opex_radio_falhas = np.zeros(self.municipio.tempo_analise)
+
+        for b in lista_bs:
+            opex_radio_falhas_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
+            opex_radio_penalidades_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
+
+            # Determinamos os valores de AFR e MTTR de acordo com o tipo de BS
+            if b.tipo_BS.tipo is 'Macro':
+                afr = OPEX.TAXA_ARF_MACRO.valor
+                mttr = OPEX.MTTR_MACRO.valor
+                valor_manutencao = OPEX.MANUTENCAO_MACRO.valor
+            elif b.tipo_BS.tipo is 'Micro':
+                afr = OPEX.TAXA_ARF_MICRO.valor
+                mttr = OPEX.MTTR_MICRO.valor
+                valor_manutencao = OPEX.MANUTENCAO_MICRO.valor
+            elif b.tipo_BS.tipo is 'Pico':
+                afr = OPEX.TAXA_ARF_PICO.valor
+                mttr = OPEX.MTTR_PICO.valor
+                valor_manutencao = OPEX.MANUTENCAO_PICO.valor
+            else:
+                afr = OPEX.TAXA_ARF_FEMTO.valor
+                mttr = OPEX.MTTR_FEMTO.valor
+                valor_manutencao = OPEX.MANUTENCAO_FEMTO.valor
+
+            # Realizar a atualizacao do valor de manutenção corretiva ajustado por ano
+            # Observar o parâmetro alpha da equacao (1.1) de de Yaghoubi et al (2019).
+            valor_manutencao_ajustado = util.atualizacao_linear(valor_manutencao,
+                                                                OPEX.TAXA_REAJUSTE.valor,
+                                                                self.municipio.tempo_analise)
+
+            # Realizar a atualização do valor de salário do técnico de manutenção ajustado por ano
+            # Observar o parâmetro alpha da equacao (1.1) de de Yaghoubi et al (2019).
+            valor_salario_tecnico_ajustado = util.atualizacao_linear(OPEX.SALARIO_TECNICO.valor,
+                                                                     OPEX.TAXA_CORRECAO_SALARARIO.valor,
+                                                                     self.municipio.tempo_analise)
+
+            for linha in range(b.ano, self.municipio.tempo_analise):
+                valor_falha = ((mttr + 2.0 * self.municipio.tempo_viagem) *
+                               OPEX.QTD_TECNICOS.valor *
+                               OPEX.QTD_TIMES.valor *
+                               OPEX.SALARIO_TECNICO.valor + valor_manutencao_ajustado[linha]) * afr
+                opex_radio_falhas_bs[linha][linha] += valor_falha
+                for coluna in range(linha + 1, self.municipio.tempo_analise):
+                    # Realiza uma correção financeira no valor para analisá-lo no ano presente
+                    opex_radio_falhas_bs[linha][coluna] += opex_radio_falhas_bs[linha][coluna - 1] * \
+                                                           OPEX.TAXA_CORRECAO.valor
+            opex_radio_falhas += opex_radio_falhas_bs.sum(axis=0)
+
+            # Cálculo de Falhas por BS de alta importânica
+            # Assumimos 1 BS como sendo de alta importância, por aglomerado
+            for linha in range(b.ano, self.municipio.tempo_analise):
+                if self.municipio.tempo_medio_indisponibilidade > OPEX.THRESHOLD_MACRO.valor:
+                    valor_penalidade = (self.municipio.tempo_medio_indisponibilidade - OPEX.THRESHOLD_MACRO.valor) * \
+                                       OPEX.TAXA_PENALIDADE.valor
+                    opex_radio_penalidades_bs[linha][linha] += valor_penalidade
+                    for coluna in range(linha + 1, self.municipio.tempo_analise):
+                        # Realiza uma correção financeira no valor para analisá-lo no ano presente
+                        opex_radio_penalidades_bs[linha][coluna] += opex_radio_penalidades_bs[linha][coluna - 1] * \
+                                                                    OPEX.TAXA_CORRECAO.valor
+                opex_radio_falhas += opex_radio_penalidades_bs.sum(axis=0)
+
         return opex_radio_falhas

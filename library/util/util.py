@@ -2,7 +2,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-from library.entities.Ponto import Ponto
+from library.entities.ponto import Ponto
 
 
 def get_gompertz(mu, beta, gamma, total_time):
