@@ -319,7 +319,7 @@ class TCO:
                 for coluna in range(linha + 1, self.municipio.tempo_analise):
                     # Realiza uma correção financeira no valor para analisá-lo no ano presente
                     opex_radio_energia_bs[linha][coluna] += opex_radio_energia_bs[linha][coluna - 1] * \
-                                                            OPEX.TAXA_CORRECAO.valor
+                                                            (1 + OPEX.TAXA_CORRECAO.valor)
             # Achata a matriz somando todas as linhas e consolidando o valor associado a bs 'b' em opex_radio_energia
             opex_radio_energia += opex_radio_energia_bs.sum(axis=0)
 
@@ -387,7 +387,7 @@ class TCO:
                 for coluna in range(linha + 1, self.municipio.tempo_analise):
                     # Realiza uma correção financeira no valor para analisá-lo no ano presente
                     opex_radio_manutencao_bs[linha][coluna] += opex_radio_manutencao_bs[linha][coluna - 1] * \
-                                                               OPEX.TAXA_CORRECAO.valor
+                                                               (1 + OPEX.TAXA_CORRECAO.valor)
 
             # Achata a matriz somando todas as linhas e consolidando o valor associado a bs 'b' em opex_radio_energia
             opex_radio_manutencao += opex_radio_manutencao_bs.sum(axis=0)
@@ -419,10 +419,10 @@ class TCO:
 
     def __calcula_opex_radio_falhas(self, lista_bs):
         opex_radio_falhas = np.zeros(self.municipio.tempo_analise)
+        opex_radio_penalidades_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
 
         for b in lista_bs:
             opex_radio_falhas_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
-            opex_radio_penalidades_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
 
             # Determinamos os valores de AFR e MTTR de acordo com o tipo de BS
             if b.tipo_BS.tipo is 'Macro':
@@ -458,25 +458,33 @@ class TCO:
                 valor_falha = ((mttr + 2.0 * self.municipio.tempo_viagem) *
                                OPEX.QTD_TECNICOS.valor *
                                OPEX.QTD_TIMES.valor *
-                               OPEX.SALARIO_TECNICO.valor + valor_manutencao_ajustado[linha]) * afr
+                               valor_salario_tecnico_ajustado[linha] + valor_manutencao_ajustado[linha]) * afr
                 opex_radio_falhas_bs[linha][linha] += valor_falha
                 for coluna in range(linha + 1, self.municipio.tempo_analise):
                     # Realiza uma correção financeira no valor para analisá-lo no ano presente
                     opex_radio_falhas_bs[linha][coluna] += opex_radio_falhas_bs[linha][coluna - 1] * \
-                                                           OPEX.TAXA_CORRECAO.valor
+                                                           (1 + OPEX.TAXA_CORRECAO.valor)
             opex_radio_falhas += opex_radio_falhas_bs.sum(axis=0)
 
             # Cálculo de Falhas por BS de alta importânica
             # Assumimos 1 BS como sendo de alta importância, por aglomerado
-            for linha in range(b.ano, self.municipio.tempo_analise):
-                if self.municipio.tempo_medio_indisponibilidade > OPEX.THRESHOLD_MACRO.valor:
-                    valor_penalidade = (self.municipio.tempo_medio_indisponibilidade - OPEX.THRESHOLD_MACRO.valor) * \
-                                       OPEX.TAXA_PENALIDADE.valor
+            # Esta BS é a BS marcada como Hub (True)
+            if (b.hub_bs is True) and (self.municipio.tempo_medio_disponibilidade < OPEX.THRESHOLD_MACRO.valor):
+
+                # Realizar a atualização do valor de taxa de penalidade por ano
+                # Observar o parâmetro alpha da equacao (1.1) de de Yaghoubi et al (2019).
+                taxa_penalidade_ajustada = util.atualizacao_linear(OPEX.TAXA_PENALIDADE.valor,
+                                                                   OPEX.TAXA_REAJUSTE.valor,
+                                                                   self.municipio.tempo_analise)
+
+                for linha in range(b.ano, self.municipio.tempo_analise):
+                    valor_penalidade = (OPEX.THRESHOLD_MACRO.valor - self.municipio.tempo_medio_disponibilidade) * \
+                                        taxa_penalidade_ajustada[linha]
                     opex_radio_penalidades_bs[linha][linha] += valor_penalidade
                     for coluna in range(linha + 1, self.municipio.tempo_analise):
                         # Realiza uma correção financeira no valor para analisá-lo no ano presente
                         opex_radio_penalidades_bs[linha][coluna] += opex_radio_penalidades_bs[linha][coluna - 1] * \
-                                                                    OPEX.TAXA_CORRECAO.valor
+                                                                    (1 + OPEX.TAXA_CORRECAO.valor)
                 opex_radio_falhas += opex_radio_penalidades_bs.sum(axis=0)
 
         return opex_radio_falhas
