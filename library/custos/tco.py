@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib import rc
 
 from library.custos.capex import CAPEX
 from library.custos.opex import OPEX
@@ -28,13 +31,36 @@ class TCO:
                                       aluguel=np.zeros(self.municipio.tempo_analise),
                                       falhas=np.zeros(self.municipio.tempo_analise))
 
+        # Despesas de CAPEX de Transporte
+        self.capex_transporte_mw = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
+                                        equipamentos=np.zeros(self.municipio.tempo_analise),
+                                        instalacao=np.zeros(self.municipio.tempo_analise))
+
+        self.capex_transporte_fibra = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
+                                           equipamentos=np.zeros(self.municipio.tempo_analise),
+                                           instalacao=np.zeros(self.municipio.tempo_analise))
+
+        # Despesas de OPEX de Transporte
+        self.opex_transporte_mw = dict(energia=np.zeros(self.municipio.tempo_analise),
+                                       manutencao=np.zeros(self.municipio.tempo_analise),
+                                       aluguel=np.zeros(self.municipio.tempo_analise),
+                                       falhas=np.zeros(self.municipio.tempo_analise))
+
+        self.opex_transporte_fibra = dict(energia=np.zeros(self.municipio.tempo_analise),
+                                          manutencao=np.zeros(self.municipio.tempo_analise),
+                                          aluguel=np.zeros(self.municipio.tempo_analise),
+                                          falhas=np.zeros(self.municipio.tempo_analise))
+
     def calcula_capex(self):
         for ag in self.municipio.aglomerados:
             print('CAPEX de Rádio do Aglomerado {}:'.format(ag.id))
 
-            equipamentos_atualizacao, instalacao_atualizacao = self.__calcula_capex_radio_atualizacoes(ag.lista_bs['implantacao_macro'])
-            equipamentos_novos, instalacao_novos = self.__calcula_capex_radio_implantacaoes(ag.lista_bs['implantacao_macro'])
+            equipamentos_atualizacao, instalacao_atualizacao = self.__calcula_capex_radio_atualizacoes(
+                ag.lista_bs['implantacao_macro'])
+            equipamentos_novos, instalacao_novos = self.__calcula_capex_radio_implantacaoes(
+                ag.lista_bs['implantacao_macro'])
             infraestrutura = self.__calcula_capex_radio_infraestrutura(ag.lista_bs['implantacao_macro'])
+
             self.capex_radio_macro['infraestrutura'] += infraestrutura
             self.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
             self.capex_radio_macro['equipamentos'] += equipamentos_novos
@@ -54,8 +80,10 @@ class TCO:
             print(instalacao_atualizacao)
             print()
 
-            equipamentos_atualizacao, instalacao_atualizacao = self.__calcula_capex_radio_atualizacoes(ag.lista_bs['implantacao_hetnet'])
-            equipamentos_novos, instalacao_novos = self.__calcula_capex_radio_implantacaoes(ag.lista_bs['implantacao_hetnet'])
+            equipamentos_atualizacao, instalacao_atualizacao = self.__calcula_capex_radio_atualizacoes(
+                ag.lista_bs['implantacao_hetnet'])
+            equipamentos_novos, instalacao_novos = self.__calcula_capex_radio_implantacaoes(
+                ag.lista_bs['implantacao_hetnet'])
             infraestrutura = self.__calcula_capex_radio_infraestrutura(ag.lista_bs['implantacao_hetnet'])
             self.capex_radio_hetnet['infraestrutura'] += infraestrutura
             self.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
@@ -91,18 +119,17 @@ class TCO:
 
                 for at in b.atualizacoes:
                     # Verifica qual o tipo de BS para contabilizar os custos de atualizacao
-                    if b.tipo_BS.tipo is 'Macro':
+                    if b.tipo_BS.tipo == 'Macro':
                         atualizacao_hardware = CAPEX.ATUALIZACAO_MACRO.valor
                         tempo_atualizacao = CAPEX.TEMPO_ATUALIZACAO_MACRO.valor
-                    elif b.tipo_BS.tipo is 'Micro':
+                    elif b.tipo_BS.tipo == 'Micro':
                         atualizacao_hardware = CAPEX.ATUALIZACAO_MICRO.valor
                         tempo_atualizacao = CAPEX.TEMPO_ATUALIZACAO_MICRO.valor
-                    elif b.tipo_BS.tipo is 'Pico':
-                        atualizacao_hardware = CAPEX.ATUALIZACAO_PICO.valor
-                        tempo_atualizacao = CAPEX.TEMPO_ATUALIZACAO_MICRO
-                    else:
+                    elif b.tipo_BS.tipo == 'Femto':
                         atualizacao_hardware = CAPEX.ATUALIZACAO_FEMTO.valor
                         tempo_atualizacao = CAPEX.TEMPO_ATUALIZACAO_FEMTO
+                    else:
+                        raise RuntimeError('Comportamento Inesperado: CAPEX - Tipo de BS não encontrada')
 
                     # Depois calcula-se a variacao do preço de atualização ao longo dos anos
                     # Observar o parâmetro alpha da equacao (1.1) de Yaghoubi et al (2019).
@@ -141,7 +168,7 @@ class TCO:
                     # Para corrigir o valor do hardware ao longo do tempo
                     for ano in range(b.ano + 1, self.municipio.tempo_analise):
                         capex_radio_equipamentos_bs[ano] += capex_radio_equipamentos_bs[ano - 1] * \
-                                                         (1 + CAPEX.TAXA_DEPRECIACAO.valor)
+                                                            (1 + CAPEX.TAXA_DEPRECIACAO.valor)
                         capex_radio_instalacao_bs[ano] += capex_radio_instalacao_bs[ano - 1] * \
                                                           (1 + CAPEX.TAXA_DEPRECIACAO.valor)
                     capex_radio_equipamentos += capex_radio_equipamentos_bs
@@ -177,18 +204,40 @@ class TCO:
                                         2.0
 
                 # Verifica qual o tipo de BS para contabilizar os custos de implantação
-                if b.tipo_BS.tipo is 'Macro':
+                if b.tipo_BS.tipo == 'Macro':
                     tempo_instalacao = CAPEX.TEMPO_INSTALACAO_MACRO.valor
-                    equipamento = CAPEX.MACRO.valor
-                elif b.tipo_BS.tipo is 'Micro':
+                    if b.tipo_BS.tecnologia == '3G':
+                        equipamento = CAPEX.MACRO_3G.valor
+                    elif b.tipo_BS.tecnologia == '4G':
+                        equipamento = CAPEX.MACRO_4G.valor
+                    elif b.tipo_BS.tecnologia == '4.5G':
+                        equipamento = CAPEX.MACRO_45G.valor
+                    elif b.tipo_BS.tecnologia == '5G':
+                        equipamento = CAPEX.MACRO_5G.valor
+                    else:
+                        raise RuntimeError('Comportamento Inesperado: CAPEX - Tecnologia Macro BS não encontrada')
+                elif b.tipo_BS.tipo == 'Micro':
                     tempo_instalacao = CAPEX.TEMPO_INSTALACAO_MICRO.valor
-                    equipamento = CAPEX.MICRO.valor
-                elif b.tipo_BS.tipo is 'Pico':
-                    tempo_instalacao = CAPEX.TEMPO_INSTALACAO_PICO.valor
-                    equipamento = CAPEX.PICO.valor
-                else:
+                    if b.tipo_BS.tecnologia == '4G':
+                        equipamento = CAPEX.MICRO_4G.valor
+                    elif b.tipo_BS.tecnologia == '4.5G':
+                        equipamento = CAPEX.MICRO_45G.valor
+                    elif b.tipo_BS.tecnologia == '5G':
+                        equipamento = CAPEX.MICRO_5G.valor
+                    else:
+                        raise RuntimeError('Comportamento Inesperado: CAPEX - Tecnologia Micro BS não encontrada')
+                elif b.tipo_BS.tipo == 'Femto':
                     tempo_instalacao = CAPEX.TEMPO_INSTALACAO_FEMTO.valor
-                    equipamento = CAPEX.FEMTO.valor
+                    if b.tipo_BS.tecnologia == '4G':
+                        equipamento = CAPEX.FEMTO_4G.valor
+                    elif b.tipo_BS.tecnologia == '4.5G':
+                        equipamento = CAPEX.FEMTO_45G.valor
+                    elif b.tipo_BS.tecnologia == '5G':
+                        equipamento = CAPEX.FEMTO_5G.valor
+                    else:
+                        raise RuntimeError('Comportamento Inesperado: CAPEX - Tecnologia Femto BS não encontrada')
+                else:
+                    raise RuntimeError('Comportamento Inesperado: CAPEX - Tipo de BS não encontrada')
 
                 # Mão-de-Obra:
                 # Multiplicar o tempo de atualização pelo salário do técnico e pela qtd de técnicos
@@ -231,10 +280,10 @@ class TCO:
                     custo_infraestrutura = CAPEX.INFRAESTRUTURA_MACRO.valor
                 elif b.tipo_BS.tipo is 'Micro':
                     custo_infraestrutura = CAPEX.INFRAESTRUTURA_MICRO.valor
-                elif b.tipo_BS.tipo is 'Pico':
-                    custo_infraestrutura = CAPEX.INFRAESTRUTURA_PICO.valo
-                else:
+                elif b.tipo_BS.tipo == 'Femto':
                     custo_infraestrutura = CAPEX.INFRAESTRUTURA_FEMTO.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: CAPEX - Tipo de BS não encontrada')
 
                 # Realiza o cálculo de atualizacao do preco de aquisição por ano
                 infraestrutura_por_ano = util.atualizacao_linear(custo_infraestrutura,
@@ -246,7 +295,7 @@ class TCO:
                 # Faz uma depreciação anual de 5% (verificar pametro na classe CAPEX)
                 # Para corrigir o valor do hardware ao longo do tempo
                 for ano in range(b.ano + 1, self.municipio.tempo_analise):
-                    capex_radio_infraesturtura_bs[ano] += capex_radio_infraesturtura_bs[ano - 1] *  \
+                    capex_radio_infraesturtura_bs[ano] += capex_radio_infraesturtura_bs[ano - 1] * \
                                                           (1 + CAPEX.TAXA_DEPRECIACAO.valor)
                 capex_radio_infraesturtura += capex_radio_infraesturtura_bs
 
@@ -346,8 +395,10 @@ class TCO:
                     valor = aluguel_area_macro_ajustado[linha]
                 elif b.tipo_BS.tipo is 'Micro':
                     valor = aluguel_area_macro_ajustado[linha]
-                else:
+                elif b.tipo_BS.tipo is 'Femto':
                     valor = aluguel_area_small_ajustado[linha]
+                else:
+                    raise RuntimeError('Comportamento Inesperado: OPEX - Tipo de BS não encontrada')
                 opex_radio_aluguel_m2[linha][linha] += b.tipo_BS.area_fisica * valor
                 for coluna in range(linha + 1, self.municipio.tempo_analise):
                     # Realiza uma correção financeira no valor para analisá-lo no ano presente
@@ -367,14 +418,39 @@ class TCO:
             opex_radio_manutencao_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
 
             # Determinamos o valor base de manutenção de acordo com o tipo de BS
-            if b.tipo_BS.tipo is 'Macro':
-                valor_manutencao = OPEX.MANUTENCAO_MACRO.valor
-            elif b.tipo_BS.tipo is 'Micro':
-                valor_manutencao = OPEX.MANUTENCAO_MICRO.valor
-            elif b.tipo_BS.tipo is 'Pico':
-                valor_manutencao = OPEX.MANUTENCAO_PICO.valor
+            if b.tipo_BS.tipo == 'Macro':
+                if b.tipo_BS.tecnologia == '2G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_2G.valor
+                elif b.tipo_BS.tecnologia == '3G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_3G.valor
+                elif b.tipo_BS.tecnologia == '4G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_4G.valor
+                elif b.tipo_BS.tecnologia == '4.5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_45G.valor
+                elif b.tipo_BS.tecnologia == '5G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_5G.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: OPEX - Tecnologia Macro BS não encontrada')
+            elif b.tipo_BS.tipo == 'Micro':
+                if b.tipo_BS.tecnologia == '4G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_4G.valor
+                elif b.tipo_BS.tecnologia == '4.5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_45G.valor
+                elif b.tipo_BS.tecnologia == '5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_5G.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: OPEX - Tecnologia Micro BS não encontrada')
+            elif b.tipo_BS.tipo == 'Femto':
+                if b.tipo_BS.tecnologia == '4G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_4G.valor
+                elif b.tipo_BS.tecnologia == '4.5G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_45G.valor
+                elif b.tipo_BS.tecnologia == '5G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_5G.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: OPEX - Tecnologia Femto BS não encontrada')
             else:
-                valor_manutencao = OPEX.MANUTENCAO_FEMTO.valor
+                raise RuntimeError('Comportamento Inesperado: OPEX - Tipo de BS não encontrada')
 
             # Realizar a atualizacao do valor de manutenção ajustado por ano
             # Observar o parâmetro alpha da equacao (1.1) de de Yaghoubi et al (2019).
@@ -425,22 +501,47 @@ class TCO:
             opex_radio_falhas_bs = np.zeros((self.municipio.tempo_analise, self.municipio.tempo_analise))
 
             # Determinamos os valores de AFR e MTTR de acordo com o tipo de BS
-            if b.tipo_BS.tipo is 'Macro':
+            if b.tipo_BS.tipo == 'Macro':
                 afr = OPEX.TAXA_ARF_MACRO.valor
                 mttr = OPEX.MTTR_MACRO.valor
-                valor_manutencao = OPEX.MANUTENCAO_MACRO.valor
-            elif b.tipo_BS.tipo is 'Micro':
+                if b.tipo_BS.tecnologia == '2G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_2G.valor
+                elif b.tipo_BS.tecnologia == '3G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_3G.valor
+                elif b.tipo_BS.tecnologia == '4G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_4G.valor
+                elif b.tipo_BS.tecnologia == '4.5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_45G.valor
+                elif b.tipo_BS.tecnologia == '5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MACRO_5G.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: OPEX - Tecnologia de Macro BS não encontrada')
+            elif b.tipo_BS.tipo == 'Micro':
                 afr = OPEX.TAXA_ARF_MICRO.valor
                 mttr = OPEX.MTTR_MICRO.valor
-                valor_manutencao = OPEX.MANUTENCAO_MICRO.valor
-            elif b.tipo_BS.tipo is 'Pico':
-                afr = OPEX.TAXA_ARF_PICO.valor
-                mttr = OPEX.MTTR_PICO.valor
-                valor_manutencao = OPEX.MANUTENCAO_PICO.valor
-            else:
+                if b.tipo_BS.tecnologia == '3G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_3G.valor
+                elif b.tipo_BS.tecnologia == '4G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_4G.valor
+                elif b.tipo_BS.tecnologia == '4.5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_45G.valor
+                elif b.tipo_BS.tecnologia == '5G':
+                    valor_manutencao = OPEX.MANUTENCAO_MICRO_5G.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: CAPEX - Tecnologia de Micro BS não encontrada')
+            elif b.tipo_BS.tipo == 'Femto':
                 afr = OPEX.TAXA_ARF_FEMTO.valor
                 mttr = OPEX.MTTR_FEMTO.valor
-                valor_manutencao = OPEX.MANUTENCAO_FEMTO.valor
+                if b.tipo_BS.tecnologia == '4G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_4G.valor
+                elif b.tipo_BS.tecnologia == '4.5G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_45G.valor
+                elif b.tipo_BS.tecnologia == '5G':
+                    valor_manutencao = OPEX.MANUTENCAO_FEMTO_5G.valor
+                else:
+                    raise RuntimeError('Comportamento Inesperado: CAPEX - Tecnologia de Femto BS não encontrada')
+            else:
+                raise RuntimeError('Comportamento Inesperado: CAPEX - Tipo de BS não encontrada')
 
             # Realizar a atualizacao do valor de manutenção corretiva ajustado por ano
             # Observar o parâmetro alpha da equacao (1.1) de de Yaghoubi et al (2019).
@@ -479,7 +580,7 @@ class TCO:
 
                 for linha in range(b.ano, self.municipio.tempo_analise):
                     valor_penalidade = (OPEX.THRESHOLD_MACRO.valor - self.municipio.tempo_medio_disponibilidade) * \
-                                        taxa_penalidade_ajustada[linha]
+                                       taxa_penalidade_ajustada[linha]
                     opex_radio_penalidades_bs[linha][linha] += valor_penalidade
                     for coluna in range(linha + 1, self.municipio.tempo_analise):
                         # Realiza uma correção financeira no valor para analisá-lo no ano presente
@@ -488,3 +589,139 @@ class TCO:
                 opex_radio_falhas += opex_radio_penalidades_bs.sum(axis=0)
 
         return opex_radio_falhas
+
+    def gera_graficos(self):
+
+        # Gerar gráfico de TCO para os diversos cenários existentes
+
+        capex_macro = np.zeros(self.municipio.tempo_analise)
+        capex_macro += self.capex_radio_macro['infraestrutura']
+        capex_macro += self.capex_radio_macro['equipamentos']
+        capex_macro += self.capex_radio_macro['instalacao']
+
+        capex_hetnet = np.zeros(self.municipio.tempo_analise)
+        capex_hetnet += self.capex_radio_hetnet['infraestrutura']
+        capex_hetnet += self.capex_radio_hetnet['equipamentos']
+        capex_hetnet += self.capex_radio_hetnet['instalacao']
+
+        opex_macro = np.zeros(self.municipio.tempo_analise)
+        opex_macro += self.opex_radio_macro['energia']
+        opex_macro += self.opex_radio_macro['manutencao']
+        opex_macro += self.opex_radio_macro['aluguel']
+        opex_macro += self.opex_radio_macro['falhas']
+
+        opex_hetnet = np.zeros(self.municipio.tempo_analise)
+        opex_hetnet += self.opex_radio_hetnet['energia']
+        opex_hetnet += self.opex_radio_hetnet['manutencao']
+        opex_hetnet += self.opex_radio_hetnet['aluguel']
+        opex_hetnet += self.opex_radio_hetnet['falhas']
+
+        # Values of each group
+        # bars1 = [0, 0, 0, 0]
+        bars2 = [capex_macro[-1], 0, capex_hetnet[-1], 0]
+        bars3 = [opex_macro[-1], 0, opex_hetnet[-1], 0]
+
+        # Heights of bars1 + bars2
+        # bars = np.add(bars1, bars2).tolist()
+
+        # The position of the bars on the x-axis
+        r = [0, 2.5, 5.0, 7.5]
+
+        # Names of group and bar width
+        names = ['Macro+Fibra', 'Macro+MW', 'Hetnet+Fibra', 'Hetnet+MW']
+        legenda = ['CAPEX Radio', 'OPEX Radio']
+        bar_width = 1
+
+        # Create brown bars
+        # plt.bar(r, bars1, color='#7f6d5f', edgecolor='white', width=bar_width, zorder=3)
+        # Create green bars (middle), on top of the firs ones
+        # plt.bar(r, bars2, bottom=bars1, color='#557f2d', edgecolor='black', width=bar_width, zorder=3)
+        plt.bar(r, bars2, color='#557f2d', edgecolor='black', width=bar_width, zorder=3)
+        # Create green bars (top)
+        plt.bar(r, bars3, bottom=bars2, color='#2d7f5e', edgecolor='black', width=bar_width, zorder=3)
+
+        # Custom X axis
+        plt.xticks(r, names)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        plt.legend(legenda, loc='best')
+        plt.ylabel('TCO (Monetary Units $)')
+
+        # Show graphic
+        plt.show()
+        plt.figure()
+
+        # Gerar gráfico de TCO para os diversos cenários existentes
+        # Data
+        raw_data = {'infraestrutura': [self.capex_radio_macro['infraestrutura'][-1], 0.00000001, self.capex_radio_hetnet['infraestrutura'][-1], 0.00001],
+                    'equipamentos': [self.capex_radio_macro['equipamentos'][-1], 0.00000001, self.capex_radio_hetnet['equipamentos'][-1], 0.00001],
+                    'instalacao': [self.capex_radio_macro['instalacao'][-1], 0.00000001, self.capex_radio_hetnet['instalacao'][-1], 0.00001],
+                    'energia': [self.opex_radio_macro['energia'][-1], 0.00000001, self.opex_radio_hetnet['energia'][-1], 0.00001],
+                    'manutencao': [self.opex_radio_macro['manutencao'][-1], 0.00000001, self.opex_radio_hetnet['manutencao'][-1], 0.00001],
+                    'aluguel': [self.opex_radio_macro['aluguel'][-1], 0.00000001, self.opex_radio_hetnet['aluguel'][-1], 0.00001],
+                    'falhas': [self.opex_radio_macro['falhas'][-1], 0.00000001, self.opex_radio_hetnet['falhas'][-1], 0.00001]}
+
+        df = pd.DataFrame(raw_data)
+
+        # From raw value to percentage
+        totals = [i + j + k + l + m + n + o for i, j, k, l, m, n, o in zip(df['infraestrutura'], df['equipamentos'], df['instalacao'], df['energia'], df['manutencao'], df['aluguel'], df['falhas'])]
+        infraestrutura = [i / j * 100 for i, j in zip(df['infraestrutura'], totals)]
+        equipamentos = [i / j * 100 for i, j in zip(df['equipamentos'], totals)]
+        instalacao = [i / j * 100 for i, j in zip(df['instalacao'], totals)]
+
+        energia = [i / j * 100 for i, j in zip(df['energia'], totals)]
+        manutencao = [i / j * 100 for i, j in zip(df['manutencao'], totals)]
+        aluguel = [i / j * 100 for i, j in zip(df['aluguel'], totals)]
+        falhas = [i / j * 100 for i, j in zip(df['falhas'], totals)]
+
+        infraestrutura[1] = 0
+        infraestrutura[3] = 0
+        equipamentos[1] = 0
+        equipamentos[3] = 0
+        instalacao[1] = 0
+        instalacao[3] = 0
+        energia[1] = 0
+        energia[3] = 0
+        manutencao[1] = 0
+        manutencao[3] = 0
+        aluguel[1] = 0
+        aluguel[3] = 0
+        falhas[1] = 0
+        falhas[3] = 0
+
+        # Create green Bars
+        plt.bar(r, infraestrutura, color='#b5ffb9', edgecolor='black', width=bar_width, zorder=3)
+        # Create orange Bars
+        plt.bar(r, equipamentos, bottom=infraestrutura, color='#f9bc86', edgecolor='black', width=bar_width, zorder=3)
+        # Create blue Bars
+        plt.bar(r, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#a3acff', edgecolor='black',
+                width=bar_width, zorder=3)
+        plt.bar(r, energia, bottom=[i + j + k for i, j, k in zip(infraestrutura, equipamentos, instalacao)], color='red',
+                edgecolor='black',
+                width=bar_width, zorder=3)
+        plt.bar(r, manutencao, bottom=[i + j + k + l for i, j, k, l in zip(infraestrutura, equipamentos, instalacao, energia)],
+                color='blue',
+                edgecolor='black',
+                width=bar_width, zorder=3)
+        plt.bar(r, aluguel,
+                bottom=[i + j + k + l + m for i, j, k, l, m in zip(infraestrutura, equipamentos, instalacao, energia, manutencao)],
+                color='magenta',
+                edgecolor='black',
+                width=bar_width, zorder=3)
+        plt.bar(r, falhas,
+                bottom=[i + j + k + l + m + n for i, j, k, l, m, n in
+                        zip(infraestrutura, equipamentos, instalacao, energia, manutencao, aluguel)],
+                color='green',
+                edgecolor='black',
+                width=bar_width, zorder=3)
+
+
+        plt.xticks(r, names)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        legenda = ['Infraestrutura', 'Equipamentos', 'Instalação', 'Energia', 'Manutenção', 'Aluguel', 'Falhas']
+        plt.legend(legenda, loc='best', bbox_to_anchor=(1, 0.5))
+        plt.ylabel('Radio Access TCO (%)')
+
+        plt.show()
+
+
+

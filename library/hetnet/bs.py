@@ -18,7 +18,6 @@ class BS:
             TipoBS.MACRO_3G: TipoBS.MACRO_4G,
             TipoBS.MACRO_4G: TipoBS.MACRO_45G,
             TipoBS.MICRO_4G: TipoBS.MICRO_45G,
-            TipoBS.PICO_4G: TipoBS.PICO_45G,
             TipoBS.FEMTO_4G: TipoBS.FEMTO_45G,
         }
         atualizacao = switcher.get(self.tipo_BS, False)
