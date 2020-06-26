@@ -636,7 +636,7 @@ class TCO:
         r = [0, 2.5, 5.0, 7.5]
 
         # Names of group and bar width
-        names = ['Macro+Fibra', 'Macro+MW', 'Hetnet+Fibra', 'Hetnet+MW']
+        names = ['Macro', '', 'Hetnet', '']
         legenda = ['CAPEX Radio', 'OPEX Radio']
         bar_width = 1.0
         line_width = 0.5
@@ -670,7 +670,7 @@ class TCO:
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
         plt.legend(legenda, loc='best')
         plt.ylabel('TCO (Unidades Monetárias $)')
-        plt.xlabel('Anos (t)')
+        plt.xlabel('Unidade de Tempo (t)')
         plt.title('Evolução do TCO ao longo dos ano - Macro: {} {}'.format(tipo_entidade, id_entidade))
         plt.figure()
 
@@ -684,7 +684,7 @@ class TCO:
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
         plt.legend(legenda, loc='best')
         plt.ylabel('TCO (Unidades Monetárias $)')
-        plt.xlabel('Anos (t)')
+        plt.xlabel('Unidade de Tempo (t)')
         plt.title('Evolução do TCO ao longo dos ano - Hetnet: {} {}'.format(tipo_entidade, id_entidade))
 
         # Gerar gráfico de TCO para os diversos cenários existentes
