@@ -60,6 +60,14 @@ class Aglomerado:
         self.qtd_antena_mw_pt_pt_hetnet = 0.0
         self.qtd_sw_carrier_mw_hetnet = 0.0
 
+        # Despesas de CAPEX de Radio
+        self.capex_radio_macro = 0.0
+        self.capex_radio_hetnet = 0.0
+
+        # Despesas de OPEX de Radio
+        self.opex_radio_macro = 0.0
+        self.opex_radio_hetnet = 0.0
+
     def adicionar_BS(self, BS):
         self.lista_bs['implantacao_macro'].append(BS)
         self.lista_bs['implantacao_hetnet'].append(cp.deepcopy(BS))

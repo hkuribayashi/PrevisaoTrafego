@@ -77,6 +77,24 @@ class Municipio():
             self.qtd_antena_mw_pt_pt_hetnet = np.zeros(self.tempo_analise)
             self.qtd_antena_mw_pt_mp_hetnet = np.zeros(self.tempo_analise)
 
+            # Despesas de CAPEX de Radio
+            ag.capex_radio_macro = dict(infraestrutura=np.zeros(self.tempo_analise),
+                                        equipamentos=np.zeros(self.tempo_analise),
+                                        instalacao=np.zeros(self.tempo_analise))
+            ag.capex_radio_hetnet = dict(infraestrutura=np.zeros(self.tempo_analise),
+                                         equipamentos=np.zeros(self.tempo_analise),
+                                         instalacao=np.zeros(self.tempo_analise))
+
+            # Despesas de OPEX de Radio
+            ag.opex_radio_macro = dict(energia=np.zeros(self.tempo_analise),
+                                       manutencao=np.zeros(self.tempo_analise),
+                                       aluguel=np.zeros(self.tempo_analise),
+                                       falhas=np.zeros(self.tempo_analise))
+            ag.opex_radio_hetnet = dict(energia=np.zeros(self.tempo_analise),
+                                        manutencao=np.zeros(self.tempo_analise),
+                                        aluguel=np.zeros(self.tempo_analise),
+                                        falhas=np.zeros(self.tempo_analise))
+
     def calcula_demanda_trafego(self):
         self.__ajustar_aglomerados()
         for ag in self.aglomerados:

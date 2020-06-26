@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib import rc
 
 from library.custos.capex import CAPEX
 from library.custos.opex import OPEX
@@ -31,26 +30,6 @@ class TCO:
                                       aluguel=np.zeros(self.municipio.tempo_analise),
                                       falhas=np.zeros(self.municipio.tempo_analise))
 
-        # Despesas de CAPEX de Transporte
-        self.capex_transporte_mw = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
-                                        equipamentos=np.zeros(self.municipio.tempo_analise),
-                                        instalacao=np.zeros(self.municipio.tempo_analise))
-
-        self.capex_transporte_fibra = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
-                                           equipamentos=np.zeros(self.municipio.tempo_analise),
-                                           instalacao=np.zeros(self.municipio.tempo_analise))
-
-        # Despesas de OPEX de Transporte
-        self.opex_transporte_mw = dict(energia=np.zeros(self.municipio.tempo_analise),
-                                       manutencao=np.zeros(self.municipio.tempo_analise),
-                                       aluguel=np.zeros(self.municipio.tempo_analise),
-                                       falhas=np.zeros(self.municipio.tempo_analise))
-
-        self.opex_transporte_fibra = dict(energia=np.zeros(self.municipio.tempo_analise),
-                                          manutencao=np.zeros(self.municipio.tempo_analise),
-                                          aluguel=np.zeros(self.municipio.tempo_analise),
-                                          falhas=np.zeros(self.municipio.tempo_analise))
-
     def calcula_capex(self):
         for ag in self.municipio.aglomerados:
             print('CAPEX de Rádio do Aglomerado {}:'.format(ag.id))
@@ -60,6 +39,12 @@ class TCO:
             equipamentos_novos, instalacao_novos = self.__calcula_capex_radio_implantacaoes(
                 ag.lista_bs['implantacao_macro'])
             infraestrutura = self.__calcula_capex_radio_infraestrutura(ag.lista_bs['implantacao_macro'])
+
+            ag.capex_radio_macro['infraestrutura'] += infraestrutura
+            ag.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
+            ag.capex_radio_macro['equipamentos'] += equipamentos_novos
+            ag.capex_radio_macro['instalacao'] += instalacao_atualizacao
+            ag.capex_radio_macro['instalacao'] += instalacao_novos
 
             self.capex_radio_macro['infraestrutura'] += infraestrutura
             self.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
@@ -85,6 +70,13 @@ class TCO:
             equipamentos_novos, instalacao_novos = self.__calcula_capex_radio_implantacaoes(
                 ag.lista_bs['implantacao_hetnet'])
             infraestrutura = self.__calcula_capex_radio_infraestrutura(ag.lista_bs['implantacao_hetnet'])
+
+            ag.capex_radio_hetnet['infraestrutura'] += infraestrutura
+            ag.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
+            ag.capex_radio_hetnet['equipamentos'] += equipamentos_novos
+            ag.capex_radio_hetnet['instalacao'] += instalacao_atualizacao
+            ag.capex_radio_hetnet['instalacao'] += instalacao_novos
+
             self.capex_radio_hetnet['infraestrutura'] += infraestrutura
             self.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
             self.capex_radio_hetnet['equipamentos'] += equipamentos_novos
@@ -309,6 +301,11 @@ class TCO:
             manutencao = self.__calcula_opex_radio_manutencao(ag.lista_bs['implantacao_macro'])
             falhas = self.__calcula_opex_radio_falhas(ag.lista_bs['implantacao_macro'])
 
+            ag.opex_radio_macro['energia'] += energia
+            ag.opex_radio_macro['manutencao'] += manutencao
+            ag.opex_radio_macro['aluguel'] += aluguel
+            ag.opex_radio_macro['falhas'] += falhas
+
             self.opex_radio_macro['energia'] += energia
             self.opex_radio_macro['manutencao'] += manutencao
             self.opex_radio_macro['aluguel'] += aluguel
@@ -329,6 +326,11 @@ class TCO:
             aluguel = self.__calcula_opex_radio_aluguel(ag.lista_bs['implantacao_hetnet'])
             manutencao = self.__calcula_opex_radio_manutencao(ag.lista_bs['implantacao_hetnet'])
             falhas = self.__calcula_opex_radio_falhas(ag.lista_bs['implantacao_hetnet'])
+
+            ag.opex_radio_hetnet['energia'] += energia
+            ag.opex_radio_hetnet['manutencao'] += manutencao
+            ag.opex_radio_hetnet['aluguel'] += aluguel
+            ag.opex_radio_hetnet['falhas'] += falhas
 
             self.opex_radio_hetnet['energia'] += energia
             self.opex_radio_hetnet['manutencao'] += manutencao
@@ -591,38 +593,44 @@ class TCO:
         return opex_radio_falhas
 
     def gera_graficos(self):
+        # Gerar gráficos para cada aglomerado do Município
+        # Gráficos de TCO
+        for ag in self.municipio.aglomerados:
+            print('Gráficos do Aglomerado {}:'.format(ag.id))
+            self.__gera_graficos_tco(ag, 'Aglomerado', ag.id)
+
+        # Gerar gráficos consolidados para o Município
+        # Gráficos de TCO
+        self.__gera_graficos_tco(self, 'Município', 'Faro - PA')
+
+    def __gera_graficos_tco(self, entidade, tipo_entidade, id_entidade):
 
         # Gerar gráfico de TCO para os diversos cenários existentes
-
         capex_macro = np.zeros(self.municipio.tempo_analise)
-        capex_macro += self.capex_radio_macro['infraestrutura']
-        capex_macro += self.capex_radio_macro['equipamentos']
-        capex_macro += self.capex_radio_macro['instalacao']
+        capex_macro += entidade.capex_radio_macro['infraestrutura']
+        capex_macro += entidade.capex_radio_macro['equipamentos']
+        capex_macro += entidade.capex_radio_macro['instalacao']
 
         capex_hetnet = np.zeros(self.municipio.tempo_analise)
-        capex_hetnet += self.capex_radio_hetnet['infraestrutura']
-        capex_hetnet += self.capex_radio_hetnet['equipamentos']
-        capex_hetnet += self.capex_radio_hetnet['instalacao']
+        capex_hetnet += entidade.capex_radio_hetnet['infraestrutura']
+        capex_hetnet += entidade.capex_radio_hetnet['equipamentos']
+        capex_hetnet += entidade.capex_radio_hetnet['instalacao']
 
         opex_macro = np.zeros(self.municipio.tempo_analise)
-        opex_macro += self.opex_radio_macro['energia']
-        opex_macro += self.opex_radio_macro['manutencao']
-        opex_macro += self.opex_radio_macro['aluguel']
-        opex_macro += self.opex_radio_macro['falhas']
+        opex_macro += entidade.opex_radio_macro['energia']
+        opex_macro += entidade.opex_radio_macro['manutencao']
+        opex_macro += entidade.opex_radio_macro['aluguel']
+        opex_macro += entidade.opex_radio_macro['falhas']
 
         opex_hetnet = np.zeros(self.municipio.tempo_analise)
-        opex_hetnet += self.opex_radio_hetnet['energia']
-        opex_hetnet += self.opex_radio_hetnet['manutencao']
-        opex_hetnet += self.opex_radio_hetnet['aluguel']
-        opex_hetnet += self.opex_radio_hetnet['falhas']
+        opex_hetnet += entidade.opex_radio_hetnet['energia']
+        opex_hetnet += entidade.opex_radio_hetnet['manutencao']
+        opex_hetnet += entidade.opex_radio_hetnet['aluguel']
+        opex_hetnet += entidade.opex_radio_hetnet['falhas']
 
         # Values of each group
-        # bars1 = [0, 0, 0, 0]
-        bars2 = [capex_macro[-1], 0, capex_hetnet[-1], 0]
-        bars3 = [opex_macro[-1], 0, opex_hetnet[-1], 0]
-
-        # Heights of bars1 + bars2
-        # bars = np.add(bars1, bars2).tolist()
+        capex = [capex_macro[-1], 0, capex_hetnet[-1], 0]
+        opex = [opex_macro[-1], 0, opex_hetnet[-1], 0]
 
         # The position of the bars on the x-axis
         r = [0, 2.5, 5.0, 7.5]
@@ -630,40 +638,97 @@ class TCO:
         # Names of group and bar width
         names = ['Macro+Fibra', 'Macro+MW', 'Hetnet+Fibra', 'Hetnet+MW']
         legenda = ['CAPEX Radio', 'OPEX Radio']
-        bar_width = 1
+        bar_width = 1.0
+        line_width = 0.5
 
-        # Create brown bars
-        # plt.bar(r, bars1, color='#7f6d5f', edgecolor='white', width=bar_width, zorder=3)
-        # Create green bars (middle), on top of the firs ones
-        # plt.bar(r, bars2, bottom=bars1, color='#557f2d', edgecolor='black', width=bar_width, zorder=3)
-        plt.bar(r, bars2, color='#557f2d', edgecolor='black', width=bar_width, zorder=3)
-        # Create green bars (top)
-        plt.bar(r, bars3, bottom=bars2, color='#2d7f5e', edgecolor='black', width=bar_width, zorder=3)
+        plt.bar(r, capex, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(r, opex, bottom=capex, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
 
         # Custom X axis
         plt.xticks(r, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
         plt.legend(legenda, loc='best')
-        plt.ylabel('TCO (Monetary Units $)')
-
-        # Show graphic
-        plt.show()
+        plt.ylabel('TCO (Unidades Monetárias $)')
+        plt.title('TCO da Rede Acesso - Macro e Hetnet: {} {}'.format(tipo_entidade, id_entidade))
         plt.figure()
 
+        # Gerar gráfico de evolução do TCO ao longo dos anos - Macro
+        # The position of the bars on the x-axis
+        r = [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0]
+
+        # Legendas
+        names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
+        legenda = ['CAPEX Radio', 'OPEX Radio']
+
+        plt.bar(r, capex_macro, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(r, opex_macro, bottom=capex_macro, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
+
+        # Custom X axis
+        plt.xticks(r, names)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        plt.legend(legenda, loc='best')
+        plt.ylabel('TCO (Unidades Monetárias $)')
+        plt.xlabel('Anos (t)')
+        plt.title('Evolução do TCO ao longo dos ano - Macro: {} {}'.format(tipo_entidade, id_entidade))
+        plt.figure()
+
+        # Gerar gráfico de evolução do TCO ao longo dos anos - Hetnet
+        plt.bar(r, capex_hetnet, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(r, opex_hetnet, bottom=capex_hetnet, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
+
+        # Custom X axis
+        plt.xticks(r, names)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        plt.legend(legenda, loc='best')
+        plt.ylabel('TCO (Unidades Monetárias $)')
+        plt.xlabel('Anos (t)')
+        plt.title('Evolução do TCO ao longo dos ano - Hetnet: {} {}'.format(tipo_entidade, id_entidade))
+
         # Gerar gráfico de TCO para os diversos cenários existentes
+        plt.figure(figsize=(8,5.5))
+
         # Data
-        raw_data = {'infraestrutura': [self.capex_radio_macro['infraestrutura'][-1], 0.00000001, self.capex_radio_hetnet['infraestrutura'][-1], 0.00001],
-                    'equipamentos': [self.capex_radio_macro['equipamentos'][-1], 0.00000001, self.capex_radio_hetnet['equipamentos'][-1], 0.00001],
-                    'instalacao': [self.capex_radio_macro['instalacao'][-1], 0.00000001, self.capex_radio_hetnet['instalacao'][-1], 0.00001],
-                    'energia': [self.opex_radio_macro['energia'][-1], 0.00000001, self.opex_radio_hetnet['energia'][-1], 0.00001],
-                    'manutencao': [self.opex_radio_macro['manutencao'][-1], 0.00000001, self.opex_radio_hetnet['manutencao'][-1], 0.00001],
-                    'aluguel': [self.opex_radio_macro['aluguel'][-1], 0.00000001, self.opex_radio_hetnet['aluguel'][-1], 0.00001],
-                    'falhas': [self.opex_radio_macro['falhas'][-1], 0.00000001, self.opex_radio_hetnet['falhas'][-1], 0.00001]}
+        raw_data = {'infraestrutura': [entidade.capex_radio_macro['infraestrutura'][-1],
+                                       entidade.capex_radio_hetnet['infraestrutura'][-1],
+                                       0.00001,
+                                       0.00001],
+                    'equipamentos': [entidade.capex_radio_macro['equipamentos'][-1],
+                                     entidade.capex_radio_hetnet['equipamentos'][-1],
+                                     0.00001,
+                                     0.00001],
+                    'instalacao': [entidade.capex_radio_macro['instalacao'][-1],
+                                   entidade.capex_radio_hetnet['instalacao'][-1],
+                                   0.00001,
+                                   0.00001],
+                    'energia': [entidade.opex_radio_macro['energia'][-1],
+                                entidade.opex_radio_hetnet['energia'][-1],
+                                0.00001,
+                                0.00001],
+                    'manutencao': [entidade.opex_radio_macro['manutencao'][-1],
+                                   entidade.opex_radio_hetnet['manutencao'][-1],
+                                   0.00001,
+                                   0.00001],
+                    'aluguel': [entidade.opex_radio_macro['aluguel'][-1],
+                                entidade.opex_radio_hetnet['aluguel'][-1],
+                                0.00001,
+                                0.00001],
+                    'falhas': [entidade.opex_radio_macro['falhas'][-1],
+                               entidade.opex_radio_hetnet['falhas'][-1],
+                               0.00001,
+                               0.00001]}
 
         df = pd.DataFrame(raw_data)
 
+        # The position of the bars on the x-axis
+        r = [0, 2.5, 5.0, 7.5, 10.0, 12.5]
+
         # From raw value to percentage
-        totals = [i + j + k + l + m + n + o for i, j, k, l, m, n, o in zip(df['infraestrutura'], df['equipamentos'], df['instalacao'], df['energia'], df['manutencao'], df['aluguel'], df['falhas'])]
+        totals = [i + j + k + l + m + n + o for i, j, k, l, m, n, o in
+                  zip(df['infraestrutura'], df['equipamentos'], df['instalacao'], df['energia'], df['manutencao'],
+                      df['aluguel'], df['falhas'])]
         infraestrutura = [i / j * 100 for i, j in zip(df['infraestrutura'], totals)]
         equipamentos = [i / j * 100 for i, j in zip(df['equipamentos'], totals)]
         instalacao = [i / j * 100 for i, j in zip(df['instalacao'], totals)]
@@ -673,55 +738,74 @@ class TCO:
         aluguel = [i / j * 100 for i, j in zip(df['aluguel'], totals)]
         falhas = [i / j * 100 for i, j in zip(df['falhas'], totals)]
 
-        infraestrutura[1] = 0
+        infraestrutura[2] = 0
         infraestrutura[3] = 0
-        equipamentos[1] = 0
+        infraestrutura.append(0)
+        infraestrutura.append(0)
+
+        equipamentos[2] = 0
         equipamentos[3] = 0
-        instalacao[1] = 0
+        equipamentos.append(0)
+        equipamentos.append(0)
+
+        instalacao[2] = 0
         instalacao[3] = 0
-        energia[1] = 0
+        instalacao.append(0)
+        instalacao.append(0)
+
+        energia[2] = 0
         energia[3] = 0
-        manutencao[1] = 0
+        energia.append(0)
+        energia.append(0)
+
+        manutencao[2] = 0
         manutencao[3] = 0
-        aluguel[1] = 0
+        manutencao.append(0)
+        manutencao.append(0)
+
+        aluguel[2] = 0
         aluguel[3] = 0
-        falhas[1] = 0
+        aluguel.append(0)
+        aluguel.append(0)
+
+        falhas[2] = 0
         falhas[3] = 0
+        falhas.append(0)
+        falhas.append(0)
 
         # Create green Bars
-        plt.bar(r, infraestrutura, color='#b5ffb9', edgecolor='black', width=bar_width, zorder=3)
+        plt.bar(r, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
         # Create orange Bars
-        plt.bar(r, equipamentos, bottom=infraestrutura, color='#f9bc86', edgecolor='black', width=bar_width, zorder=3)
+        plt.bar(r, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
         # Create blue Bars
-        plt.bar(r, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#a3acff', edgecolor='black',
-                width=bar_width, zorder=3)
-        plt.bar(r, energia, bottom=[i + j + k for i, j, k in zip(infraestrutura, equipamentos, instalacao)], color='red',
+        plt.bar(r, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#88a54f',
+                edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(r, energia, bottom=[i + j + k for i, j, k in zip(infraestrutura, equipamentos, instalacao)],
+                color='#72578f', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(r, manutencao,
+                bottom=[i + j + k + l for i, j, k, l in zip(infraestrutura, equipamentos, instalacao, energia)],
+                color='#4298ae',
                 edgecolor='black',
-                width=bar_width, zorder=3)
-        plt.bar(r, manutencao, bottom=[i + j + k + l for i, j, k, l in zip(infraestrutura, equipamentos, instalacao, energia)],
-                color='blue',
-                edgecolor='black',
-                width=bar_width, zorder=3)
+                width=bar_width, zorder=3, linewidth=line_width)
         plt.bar(r, aluguel,
-                bottom=[i + j + k + l + m for i, j, k, l, m in zip(infraestrutura, equipamentos, instalacao, energia, manutencao)],
-                color='magenta',
+                bottom=[i + j + k + l + m for i, j, k, l, m in
+                        zip(infraestrutura, equipamentos, instalacao, energia, manutencao)],
+                color='#da8436',
                 edgecolor='black',
-                width=bar_width, zorder=3)
+                width=bar_width, zorder=3, linewidth=line_width)
         plt.bar(r, falhas,
                 bottom=[i + j + k + l + m + n for i, j, k, l, m, n in
                         zip(infraestrutura, equipamentos, instalacao, energia, manutencao, aluguel)],
-                color='green',
+                color='#93a9cf',
                 edgecolor='black',
-                width=bar_width, zorder=3)
+                width=bar_width, zorder=3, linewidth=line_width)
 
-
+        names = ['Macro', 'Hetnet', 'Fibra', 'MW', 'SFV On-grid', 'SFV Híbrido']
         plt.xticks(r, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
-        legenda = ['Infraestrutura', 'Equipamentos', 'Instalação', 'Energia', 'Manutenção', 'Aluguel', 'Falhas']
-        plt.legend(legenda, loc='best', bbox_to_anchor=(1, 0.5))
-        plt.ylabel('Radio Access TCO (%)')
-
+        legenda = ['Infra.', 'Equip.', 'Inst.', 'Energ.', 'Manut.', 'Aluguel', 'Falhas']
+        plt.legend(legenda, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=7)
+        plt.title('Composição TCO - Rádio, Transporte e SFV: {} {}'.format(tipo_entidade, id_entidade))
+        plt.ylabel('Composição do TCO (%)')
         plt.show()
-
-
-
