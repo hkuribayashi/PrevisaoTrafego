@@ -59,10 +59,3 @@ def atualizacao_linear(preco_inicial, taxa, periodo):
         else:
             preco_atualizado[ano] = preco_inicial + (taxa * preco_atualizado[ano - 1])
     return preco_atualizado
-
-
-def variacao_preco_linear(capital, taxa, periodo):
-    montante = np.zeros(periodo)
-    for ano in range(len(montante)):
-        montante[ano] = capital * (1+taxa)**ano
-    return montante

@@ -10,12 +10,9 @@ class OPEX(Enum):
     # Reajuste anual de Preços
     TAXA_REAJUSTE = ('Taxa de reajuste de despesas', '%/ano', 0.03)
 
-    # Correção Monetária
-    TAXA_CORRECAO = ('Taxa de correção monetária', '%/ano', 0.005)
-
     # Despesas de Aluguel
     ALUGUEL_OUTDOOR = ('Valor de aluguel anual por m2 outdoor', '$/m2', 0.002)
-    ALUGUEL_INDOOR = ('Valor de aluguel anual por m2 indoor', '$/m2', 0.001636)
+    ALUGUEL_INDOOR = ('Valor de aluguel anual por m2 indoor', '$/m2', 0.00160)
 
     # Despesas de Manutenção de BSs
     MANUTENCAO_MACRO_2G = ('Valor de manutencao anual por Macro BS 2G', '$/BS', 0.01727)

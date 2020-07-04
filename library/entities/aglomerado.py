@@ -441,14 +441,18 @@ class Aglomerado:
         return quantidade_antena_mw_pt_pt, quantidade_sw_carrier_mw
 
     def calcula_dimensionamento_rede_transporte(self):
+        print('Estratégia Macro:')
         self.qtd_fibra_instalada_macro_only, self.qtd_modem_pon_macro_only = \
             self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_macro'])
 
+        print('Estratégia Hetnet:')
         self.qtd_fibra_instalada_hetnet, self.qtd_modem_pon_hetnet = \
             self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
 
+        print('Estratégia Macro:')
         self.qtd_antena_mw_pt_pt_macro_only, self.qtd_sw_carrier_mw_macro_only = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_macro'])
 
+        print('Estratégia Hetnet:')
         self.qtd_antena_mw_pt_pt_hetnet, self.qtd_sw_carrier_mw_hetnet = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_hetnet'])

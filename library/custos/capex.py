@@ -3,9 +3,9 @@ from enum import Enum
 
 class CAPEX(Enum):
     # Reajuste anual de Preços
-    TAXA_REAJUSTE = ('Taxa de reajuste de despesas', '%/ano', -0.07)
-    TAXA_DEPRECIACAO = ('Taxa de Depreciação Financeira de Eqipamentos', '%/ano', -0.05)
+    TAXA_REAJUSTE = ('Taxa de reajuste de despesas', '%/ano', -0.03)
 
+    # Rádio
     # Despesas de Infraestrutura por BS
     INFRAESTRUTURA_MACRO = ('Despesas de implantação de Infra Macro BS', '$/BS', 1.0)
     INFRAESTRUTURA_MICRO = ('Despesas de implantação de Infra Micro BS', '$/BS', 0.5)
@@ -44,7 +44,7 @@ class CAPEX(Enum):
     # Despesas relacionada a RH
     SALARIO_TECNICO = ('Salário do Técnico de Implantação/Atualização', '$/hora', 0.0004727)
     QTD_TECNICOS_INSTALACAO = ('Qtd de Técnicos por Time de Instalação', 'técnicos/time', 2.0)
-    QTD_TECNICOS_ATUALIZACAO = ('Qtd de Técnicos por Time de Atualização', 'técnicos/time', 1.0)
+    QTD_TECNICOS_ATUALIZACAO = ('Qtd de Técnicos por Time de Atualização', 'técnicos/time', 2.0)
     QTD_TIMES = ('Quantidade de times', 'unidades', 1.0)
     TAXA_CORRECAO_SALARARIO = ('Taxa de Correção de Salário do Técnico de Instalação/Manutenção', '%/ano', 0.07)
 
