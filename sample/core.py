@@ -41,4 +41,6 @@ m1.calcula_dimensionamento_rede_transporte()
 m1.calcula_dimensionamento_centraloffice()
 
 tco = TCO(m1)
+tco.calcula_capex()
+tco.calcula_opex()
 tco.gera_graficos()
