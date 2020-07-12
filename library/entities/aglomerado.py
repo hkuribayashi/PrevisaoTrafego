@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 import copy as cp
 
@@ -10,21 +8,27 @@ from library.hetnet.bs import BS
 from library.util.util import get_gompertz, get_ponto_aleatorio, busca_bs_nao_hub, get_distancia_manhattan, busca_bs_hub
 
 
+# noinspection PyUnresolvedReferences
 class Aglomerado:
 
     def __init__(self, id_, total_habitantes, area_aglomerado, total_agencias_bancarias, total_domicilios,
-                 percentual_pop_ativa, total_cruzamentos, tipo_aglomerado):
+                 total_cruzamentos, tipo_aglomerado,
+                 tipo_cenario='Original',
+                 cenario_original=-1,
+                 estrategia_atualizacao_bs='Tradicional'):
+
         self.id = id_
         self.total_habitantes = total_habitantes
         self.area_aglomerado = area_aglomerado
         self.total_agencias_bancarias = total_agencias_bancarias
         self.total_domicilios = total_domicilios
-        self.densidade_demografica = total_habitantes / area_aglomerado
-        self.percentual_pop_ativa = percentual_pop_ativa
-        self.total_pop_ativa = self.percentual_pop_ativa * self.total_habitantes
-        self.total_pop_inativa = self.total_habitantes - self.total_pop_ativa
+        self.densidade_demografica = total_habitantes/area_aglomerado
+
         self.total_cruzamentos = total_cruzamentos
         self.tipo_aglomerado = tipo_aglomerado
+        self.tipo_cenario = tipo_cenario
+        self.cenario_original = cenario_original
+        self.estrategia_atualizacao_bs = estrategia_atualizacao_bs
 
         self.total_servidores_publicos = 0.0
         self.total_servidores_publicos_saude = 0.0
@@ -34,6 +38,9 @@ class Aglomerado:
         self.total_veiculos = 0.0
         self.tempo_analise = 0
         self.percentual_alunos_ead = 0.0
+        self.percentual_pop_ativa = 0.0
+        self.total_pop_ativa = 0.0
+        self.total_pop_inativa = 0.0
 
         self.percentual_habitantes = 0.0
         self.demanda_trafego_por_area = 0.0
@@ -43,7 +50,7 @@ class Aglomerado:
         self.demanda_usuarios = 0.0
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
-        self.tempo_maturacao = 4.0
+        self.tempo_maturacao = 3.0
         self.lista_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
         self.capacidade_atendimento_rede_acesso = dict(implantacao_macro=list(), implantacao_hetnet=list())
         self.quantidade_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
@@ -68,13 +75,16 @@ class Aglomerado:
         self.opex_radio_macro = 0.0
         self.opex_radio_hetnet = 0.0
 
+        if self.tipo_cenario == 'Alternativo' and self.cenario_original == -1:
+            raise RuntimeError('Erro: Deve ser informado o aglomerado original')
+
     def adicionar_BS(self, BS):
         self.lista_bs['implantacao_macro'].append(BS)
         self.lista_bs['implantacao_hetnet'].append(cp.deepcopy(BS))
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self.tempo_analise)
-        print('Dados de Aplicações de IoT/M2M para o Aglomerado {}'.format(self.id))
+        print('Dados de Aplicações de IoT/M2M para o Aglomerado {} ({}+{})'.format(self.id, self.tipo_cenario, self.estrategia_atualizacao_bs))
         for app in Aplicacao:
             qtd_terminais = 0.0
             if app.id == 1:
@@ -131,7 +141,7 @@ class Aglomerado:
         self.densidade_usuarios = densidade_usuarios * self.densidade_demografica * self.percentual_pop_ativa
 
     def calcula_trafego_terminal(self):
-        # Inicializa duas matrizes com 3 linhas (tipos de terminais) x 'tempo_analise' colunas
+        # Inicializa duas matrizes com 3 linhas (tipos de terminais) x 15 colunas (tempo_analise)
         r_j = np.zeros((3, self.tempo_analise))
         rs_j = np.zeros((3, self.tempo_analise))
 
@@ -212,7 +222,13 @@ class Aglomerado:
                 print('Capacidade antes da Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_antes,
                                                                                                   bs.tipo_BS.tipo,
                                                                                                   bs.tipo_BS.tecnologia))
-                bs.upgrade(t)
+                if self.estrategia_atualizacao_bs == 'Tradicional':
+                    bs.upgrade(t)
+                elif self.estrategia_atualizacao_bs == 'Acelerada':
+                    bs.upgrade_5G(t)
+                else:
+                    raise RuntimeError('Estratégia de Atualização de BS não encontrada: {}'.format(self.estrategia_atualizacao_bs))
+
                 capacidade_depois = bs.tipo_BS.capacidade * bs.tipo_BS.setores
                 print('Capacidade após Atualização: {} Mbps ({} BS com tecnologia {})'.format(capacidade_depois,
                                                                                               bs.tipo_BS.tipo,
@@ -223,15 +239,25 @@ class Aglomerado:
 
     def __implatacao_novas_bs(self, t, demanda_expansao, tipo_bs):
         if tipo_bs == 'Macro':
-            if t <= self.tempo_maturacao:
-                tipo = TipoBS.MACRO_45G
-            else:
+            if self.estrategia_atualizacao_bs == 'Tradicional':
+                if t <= self.tempo_maturacao:
+                    tipo = TipoBS.MACRO_45G
+                else:
+                    tipo = TipoBS.MACRO_5G
+            elif self.estrategia_atualizacao_bs == 'Acelerada':
                 tipo = TipoBS.MACRO_5G
-        else:
-            if t <= self.tempo_maturacao:
-                tipo = TipoBS.FEMTO_45G
             else:
+                raise RuntimeError('Estratégia de Atualização de BS não encontrada: {}'.format(self.estrategia_atualizacao_bs))
+        else:
+            if self.estrategia_atualizacao_bs == 'Tradicional':
+                if t <= self.tempo_maturacao:
+                    tipo = TipoBS.FEMTO_45G
+                else:
+                    tipo = TipoBS.FEMTO_5G
+            elif self.estrategia_atualizacao_bs == 'Acelerada':
                 tipo = TipoBS.FEMTO_5G
+            else:
+                raise RuntimeError('Estratégia de Atualização de BS não encontrada: {}'.format(self.estrategia_atualizacao_bs))
 
         print('Inclusão de BSs por Capacidade em {} Mbps'.format(demanda_expansao))
         n_bs = np.ceil(demanda_expansao / (tipo.capacidade * tipo.setores))
@@ -244,8 +270,50 @@ class Aglomerado:
             else:
                 self.lista_bs['implantacao_hetnet'].append(nova_bs)
 
+    def implanta_cobertura_basica(self, ano):
+        ponto = get_ponto_aleatorio()
+        if self.estrategia_atualizacao_bs == 'Tradicional':
+            diff_macro = (TipoBS.MACRO_4G.cobertura_por_setor * TipoBS.MACRO_4G.setores) - self.area_aglomerado
+            diff_micro = (TipoBS.MICRO_4G.cobertura_por_setor * TipoBS.MICRO_4G.setores) - self.area_aglomerado
+            if diff_macro >= 0 and diff_micro >= 0:
+                if diff_macro < diff_micro:
+                    nova_bs = BS(0, TipoBS.MACRO_4G, ponto, ano, True, False)
+                else:
+                    nova_bs = BS(0, TipoBS.MICRO_4G, ponto, ano, True, False)
+            else:
+                nova_bs = BS(0, TipoBS.MACRO_4G, ponto, ano, True, False)
+
+            print('Estratégia de Implantação Macro Only:')
+            print('Implantação de uma Macro BS com tecnologia 4G')
+            print('Estratégia de Implantação HetNet:')
+            print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo, nova_bs.tipo_BS.tecnologia))
+
+            self.lista_bs['implantacao_macro'].append(BS(0, TipoBS.MACRO_4G, ponto, ano, True, False))
+            self.lista_bs['implantacao_hetnet'].append(nova_bs)
+
+        elif self.estrategia_atualizacao_bs == 'Acelerada':
+            diff_macro = (TipoBS.MACRO_5G.cobertura_por_setor * TipoBS.MACRO_5G.setores) - self.area_aglomerado
+            diff_micro = (TipoBS.MICRO_5G.cobertura_por_setor * TipoBS.MICRO_5G.setores) - self.area_aglomerado
+            if diff_macro >= 0 and diff_micro >= 0:
+                if diff_macro < diff_micro:
+                    nova_bs = BS(0, TipoBS.MACRO_5G, ponto, ano, True, False)
+                else:
+                    nova_bs = BS(0, TipoBS.MICRO_5G, ponto, ano, True, False)
+            else:
+                nova_bs = BS(0, TipoBS.MACRO_5G, ponto, ano, True, False)
+
+            self.lista_bs['implantacao_macro'].append(BS(0, TipoBS.MACRO_5G, ponto, ano, True, False))
+            self.lista_bs['implantacao_hetnet'].append(nova_bs)
+
+            print('Estratégia de Implantação Macro Only:')
+            print('Implantação de uma Macro BS com tecnologia 5G')
+            print('Estratégia de Implantação HetNet:')
+            print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo, nova_bs.tipo_BS.tecnologia))
+        else:
+            raise RuntimeError('Estratégia de Atualização de BS não encontrada: {}'.format(self.estrategia_atualizacao_bs))
+
     def calcula_dimensionamento_rede_acesso(self):
-        print('Dimensionamento da Rede de Rádio do Aglomerado {}:'.format(self.id))
+        print('Dimensionamento da Rede de Rádio do Aglomerado {} ({}+{}):'.format(self.id, self.tipo_cenario, self.estrategia_atualizacao_bs))
         for ano, demanda_ano in enumerate(self.demanda_trafego_por_area):
             self.demanda_trafego[ano] = demanda_ano * self.area_aglomerado
             print('Ano (t): {}'.format(ano))
@@ -253,35 +321,10 @@ class Aglomerado:
 
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
             if capacidade_atendimento_macro == 0:
-                print('Capacidade de Atendimento Inexistente no Aglomerado {}:'.format(self.id))
-                print('Realizando a implantação de uma BS para criação de cobertura básica')
-                if self.tipo_aglomerado == 'Sede':
-                    ponto = get_ponto_aleatorio()
-                    nova_bs = BS(0, TipoBS.MACRO_4G, ponto, ano, True, False)
-                    self.adicionar_BS(nova_bs)
-                    print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo,
-                                                                              nova_bs.tipo_BS.tecnologia))
-                else:
-                    diff_macro = abs(
-                        (TipoBS.MACRO_4G.cobertura_por_setor * TipoBS.MACRO_4G.setores) - self.area_aglomerado)
-                    diff_micro = abs(
-                        (TipoBS.MICRO_4G.cobertura_por_setor * TipoBS.MICRO_4G.setores) - self.area_aglomerado)
-                    ponto = get_ponto_aleatorio()
-                    if diff_macro < diff_micro:
-                        nova_bs = BS(0, TipoBS.MACRO_4G, ponto, ano, True, False)
-                    else:
-                        nova_bs = BS(0, TipoBS.MICRO_4G, ponto, ano, True, False)
-
-                    ponto = get_ponto_aleatorio()
-                    self.lista_bs['implantacao_macro'].append(BS(0, TipoBS.MACRO_4G, ponto, ano, True, False))
-                    self.lista_bs['implantacao_hetnet'].append(nova_bs)
-
-                    print('Estratégia de Implantação Macro Only:')
-                    print('Implantação de uma Macro BS com tecnologia 4G')
-                    print('Estratégia de Implantação HetNet:')
-                    print('Implantação de uma {} BS com tecnologia {}'.format(nova_bs.tipo_BS.tipo,
-                                                                              nova_bs.tipo_BS.tecnologia))
-                    print()
+                print('Capacidade de Atendimento Inexistente no Aglomerado {}.'.format(self.id))
+                print('Realizando a implantação de uma BS para criação de cobertura básica:')
+                self.implanta_cobertura_basica(ano)
+                print()
 
             capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
             self.capacidade_atendimento_rede_acesso['implantacao_macro'][ano] = capacidade_atendimento_macro

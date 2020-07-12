@@ -28,6 +28,25 @@ class BS:
             self.atualizacoes.append(AtualizacaoBS(atualizacao, ano))
             return True
 
+    def upgrade_5G(self, ano):
+        switcher = {
+            TipoBS.MACRO_2G: TipoBS.MACRO_5G,
+            TipoBS.MACRO_3G: TipoBS.MACRO_5G,
+            TipoBS.MACRO_4G: TipoBS.MACRO_5G,
+            TipoBS.MACRO_45G: TipoBS.MACRO_5G,
+            TipoBS.MICRO_4G: TipoBS.MICRO_5G,
+            TipoBS.MICRO_45G: TipoBS.MICRO_5G,
+            TipoBS.FEMTO_4G: TipoBS.FEMTO_5G,
+            TipoBS.FEMTO_45G: TipoBS.FEMTO_5G,
+        }
+        atualizacao = switcher.get(self.tipo_BS, False)
+        if atualizacao is False:
+            return False
+        else:
+            self.tipo_BS = atualizacao
+            self.atualizacoes.append(AtualizacaoBS(atualizacao, ano))
+            return True
+
     '''
     Este método foi criado para evitar que se contabilizem duas atualizações de BS no mesmo ano
     Não sei se não seria melhor utilizar ao invés da list uma outra estrutura que não permitisse elementos duplicados,

@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from library.entities.central_office import CentralOffice
@@ -38,6 +39,7 @@ class Municipio():
         self.sw_agregacao = np.zeros(tempo_analise)
         self.antenas_pt_pt = np.zeros(tempo_analise)
         self.co = CentralOffice()
+        mpl.rcParams.update({'figure.max_open_warning': 0})
 
     def adicionar_aglomerado(self, novo_aglomerado):
         self.aglomerados.append(novo_aglomerado)
@@ -54,10 +56,9 @@ class Municipio():
         for ag in self.aglomerados:
             total_habitantes = total_habitantes + ag.total_habitantes
         for ag in self.aglomerados:
-            ag.percentual_habitantes = ag.total_habitantes / total_habitantes
+            ag.percentual_habitantes = ag.total_habitantes/total_habitantes
             ag.total_servidores_publicos = ag.percentual_habitantes * self.total_servidores_publicos
-            ag.total_servidores_publicos_saude = np.ceil(
-                ag.percentual_habitantes * self.total_servidores_publicos_saude)
+            ag.total_servidores_publicos_saude = np.ceil(ag.percentual_habitantes * self.total_servidores_publicos_saude)
             ag.total_trabalhadores_informais = ag.total_pop_ativa - ag.total_servidores_publicos - ag.total_servidores_publicos_saude
             ag.total_veiculos = ag.percentual_habitantes * self.total_veiculos
             ag.total_alunos = ag.percentual_habitantes * self.total_alunos
@@ -67,6 +68,9 @@ class Municipio():
             ag.capacidade_atendimento_rede_acesso['implantacao_macro'] = np.zeros(self.tempo_analise)
             ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'] = np.zeros(self.tempo_analise)
             ag.demanda_trafego = np.zeros(self.tempo_analise)
+            ag.percentual_pop_ativa = self.percentual_pop_ativa
+            ag.total_pop_ativa = ag.percentual_pop_ativa * ag.total_habitantes
+            ag.total_pop_inativa = ag.total_habitantes - ag.total_pop_ativa
 
             self.qtd_fibra_instalada_macro_only = np.zeros(self.tempo_analise)
             self.qtd_modem_pon_macro_only = np.zeros(self.tempo_analise)
@@ -253,7 +257,7 @@ class Municipio():
         print(self.olt_implantada['implantacao_hetnet'])
         print()
 
-    def debug(self):
+    def gera_graficos_municipio(self):
         time = np.arange(self.tempo_analise)
         demanda_trafego_total = np.zeros(self.tempo_analise)
         demanda_usuarios_total = np.zeros(self.tempo_analise)

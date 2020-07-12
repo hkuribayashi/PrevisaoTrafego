@@ -54,11 +54,12 @@ class TCO:
             ag.capex_radio_macro['instalacao'] += instalacao_atualizacao
             ag.capex_radio_macro['instalacao'] += instalacao_novos
 
-            self.capex_radio_macro['infraestrutura'] += infraestrutura
-            self.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
-            self.capex_radio_macro['equipamentos'] += equipamentos_novos
-            self.capex_radio_macro['instalacao'] += instalacao_atualizacao
-            self.capex_radio_macro['instalacao'] += instalacao_novos
+            if ag.tipo_cenario == 'Original':
+                self.capex_radio_macro['infraestrutura'] += infraestrutura
+                self.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
+                self.capex_radio_macro['equipamentos'] += equipamentos_novos
+                self.capex_radio_macro['instalacao'] += instalacao_atualizacao
+                self.capex_radio_macro['instalacao'] += instalacao_novos
 
             print('Implantação Macro Only')
             print('CAPEX Radio Infraestrutura:')
@@ -85,11 +86,12 @@ class TCO:
             ag.capex_radio_hetnet['instalacao'] += instalacao_atualizacao
             ag.capex_radio_hetnet['instalacao'] += instalacao_novos
 
-            self.capex_radio_hetnet['infraestrutura'] += infraestrutura
-            self.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
-            self.capex_radio_hetnet['equipamentos'] += equipamentos_novos
-            self.capex_radio_hetnet['instalacao'] += instalacao_atualizacao
-            self.capex_radio_hetnet['instalacao'] += instalacao_novos
+            if ag.tipo_cenario == 'Original':
+                self.capex_radio_hetnet['infraestrutura'] += infraestrutura
+                self.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
+                self.capex_radio_hetnet['equipamentos'] += equipamentos_novos
+                self.capex_radio_hetnet['instalacao'] += instalacao_atualizacao
+                self.capex_radio_hetnet['instalacao'] += instalacao_novos
 
             print('Implantação Hetnet')
             print('CAPEX Infraestrutura:')
@@ -147,19 +149,19 @@ class TCO:
                     despesas_deslocamento = self.municipio.tempo_viagem * \
                                             CAPEX.QTD_TECNICOS_ATUALIZACAO.valor * \
                                             CAPEX.QTD_TIMES.valor * \
-                                            valor_salario_tecnico_ajustado[b.ano] * \
+                                            valor_salario_tecnico_ajustado[at.ano] * \
                                             2.0
 
                     # Mão-de-Obra:
                     # Multiplicar o tempo de atualização pelo salário do técnico e pela qtd de técnicos
                     despesas_instalacao = CAPEX.QTD_TECNICOS_ATUALIZACAO.valor * \
                                           CAPEX.QTD_TIMES.valor * \
-                                          valor_salario_tecnico_ajustado[b.ano] * \
+                                          valor_salario_tecnico_ajustado[at.ano] * \
                                           tempo_atualizacao
 
                     # Consolidar os valores no ano de atualização daquela BS
-                    capex_radio_equipamentos[b.ano] += atualizacao_hardware_ajustada[b.ano]
-                    capex_radio_instalacao[b.ano] += despesas_instalacao + despesas_deslocamento
+                    capex_radio_equipamentos[at.ano] += atualizacao_hardware_ajustada[at.ano]
+                    capex_radio_instalacao[at.ano] += despesas_instalacao + despesas_deslocamento
 
         return capex_radio_equipamentos, capex_radio_instalacao
 
@@ -279,10 +281,11 @@ class TCO:
             ag.opex_radio_macro['aluguel'] += aluguel
             ag.opex_radio_macro['falhas'] += falhas
 
-            self.opex_radio_macro['energia'] += energia
-            self.opex_radio_macro['manutencao'] += manutencao
-            self.opex_radio_macro['aluguel'] += aluguel
-            self.opex_radio_macro['falhas'] += falhas
+            if ag.tipo_cenario == 'Original':
+                self.opex_radio_macro['energia'] += energia
+                self.opex_radio_macro['manutencao'] += manutencao
+                self.opex_radio_macro['aluguel'] += aluguel
+                self.opex_radio_macro['falhas'] += falhas
 
             print('Implantação Macro Only')
             print('OPEX Energia:')
@@ -305,10 +308,11 @@ class TCO:
             ag.opex_radio_hetnet['aluguel'] += aluguel
             ag.opex_radio_hetnet['falhas'] += falhas
 
-            self.opex_radio_hetnet['energia'] += energia
-            self.opex_radio_hetnet['manutencao'] += manutencao
-            self.opex_radio_hetnet['aluguel'] += aluguel
-            self.opex_radio_hetnet['falhas'] += falhas
+            if ag.tipo_cenario == 'Original':
+                self.opex_radio_hetnet['energia'] += energia
+                self.opex_radio_hetnet['manutencao'] += manutencao
+                self.opex_radio_hetnet['aluguel'] += aluguel
+                self.opex_radio_hetnet['falhas'] += falhas
 
             print('Implantação Hetnet')
             print('OPEX Energia:')
@@ -431,7 +435,6 @@ class TCO:
         for ano in range(self.municipio.tempo_analise):
             opex_radio_manutencao[ano] += self.municipio.tempo_viagem * \
                                           OPEX.QTD_TECNICOS.valor * \
-                                          OPEX.SALARIO_TECNICO.valor * \
                                           OPEX.QTD_TIMES.valor * \
                                           valor_salario_tecnico_ajustado[ano] * \
                                           2.0
@@ -525,20 +528,193 @@ class TCO:
 
     def gera_graficos(self):
         # Gerar gráficos para cada aglomerado
-        # Gráficos de TCO
-        for ag in self.municipio.aglomerados:
-            print('Gráficos do Aglomerado {}:'.format(ag.id))
-            self.__gera_graficos_evolucao_tco(ag, 'Aglomerado', ag.id)
-            self.__gera_graficos_tco_acumulado(ag, 'Aglomerado', ag.id)
-            self.__gera_graficos_composicao_tco(ag, 'Aglomerado', ag.id)
-            plt.show()
+        #for ag in self.municipio.aglomerados:
+        #    print('Gráficos do Aglomerado {}:'.format(ag.id))
+        #    self.__gera_graficos_evolucao_tco(ag, 'Aglomerado', ag.id)
+        #    self.__gera_graficos_tco_acumulado(ag, 'Aglomerado', ag.id)
+        #    self.__gera_graficos_composicao_tco_porcentagem(ag, 'Aglomerado', ag.id)
+        #    plt.show()
 
         # Gerar gráficos consolidados para o Município
-        # Gráficos de TCO
-        self.__gera_graficos_evolucao_tco(self, 'Município', 'Faro - PA')
-        self.__gera_graficos_tco_acumulado(self, 'Município', 'Faro - PA')
-        self.__gera_graficos_composicao_tco(self, 'Municipio', 'Faro - PA')
-        plt.show()
+        # self.__gera_graficos_evolucao_tco(self, 'Município', 'Faro - PA')
+        # self.__gera_graficos_tco_acumulado(self, 'Município', 'Faro - PA')
+        # self.__gera_graficos_composicao_tco_porcentagem(self, 'Municipio', 'Faro - PA')
+        # plt.show()
+
+        # Gera gráficos de comparação entre Greenfield e Brownfield
+        for ag in self.municipio.aglomerados:
+            cenarios = dict()
+            if ag.tipo_cenario == 'Original':
+                cenarios['Original'] = ag
+                for outros_ag in self.municipio.aglomerados:
+                    if outros_ag.tipo_cenario == 'Alternativo' and outros_ag.cenario_original.id == ag.id:
+                        cenarios['Alternativo'+str(outros_ag.id)] = outros_ag
+                self.__gera_grafico_comparacao_(cenarios)
+                self.__gera_graficos_composicao_tco(cenarios)
+                plt.show()
+
+    def __gera_graficos_composicao_tco(self, cenarios):
+        global nome_aglomerado
+
+        infraestrutura = list()
+        equipamentos = list()
+        instalacao = list()
+        energia = list()
+        manutencao = list()
+        aluguel = list()
+        falhas = list()
+
+        rotulos = list()
+
+        for key in cenarios:
+            infraestrutura.append(cenarios[key].capex_radio_macro['infraestrutura'].sum())
+            infraestrutura.append(cenarios[key].capex_radio_hetnet['infraestrutura'].sum())
+
+            equipamentos.append(cenarios[key].capex_radio_macro['equipamentos'].sum())
+            equipamentos.append(cenarios[key].capex_radio_hetnet['equipamentos'].sum())
+
+            instalacao.append(cenarios[key].capex_radio_macro['instalacao'].sum())
+            instalacao.append(cenarios[key].capex_radio_hetnet['instalacao'].sum())
+
+            energia.append(cenarios[key].opex_radio_macro['energia'].sum())
+            energia.append(cenarios[key].opex_radio_hetnet['energia'].sum())
+
+            manutencao.append(cenarios[key].opex_radio_macro['manutencao'].sum())
+            manutencao.append(cenarios[key].opex_radio_hetnet['manutencao'].sum())
+
+            aluguel.append(cenarios[key].opex_radio_macro['aluguel'].sum())
+            aluguel.append(cenarios[key].opex_radio_hetnet['aluguel'].sum())
+
+            falhas.append(cenarios[key].opex_radio_macro['falhas'].sum())
+            falhas.append(cenarios[key].opex_radio_hetnet['falhas'].sum())
+
+            rotulos.append('Macro-C' + str(cenarios[key].id))
+            rotulos.append('Hetnet-C' + str(cenarios[key].id))
+
+            if cenarios[key].tipo_cenario == 'Original':
+                nome_aglomerado = cenarios[key].tipo_aglomerado
+
+        # Posição das Barras no eixo X
+        posicao = list()
+        if len(cenarios) <= 2:
+            separacao = 2.5
+            plt.figure(figsize=(8.0, 5.5))
+            bar_width = 1.0
+        else:
+            separacao = 3.8
+            plt.figure(figsize=(9.0, 5.5))
+            bar_width = 2.0
+
+        for i in range(2 * len(cenarios)):
+            posicao.append(i * separacao)
+
+        legenda = ['Infra.', 'Equip.', 'Inst.', 'Energ.', 'Manut.', 'Aluguel', 'Falhas']
+        line_width = 0.5
+
+        plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+
+        plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
+
+        plt.bar(posicao, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#88a54f',
+                edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+
+        plt.bar(posicao, energia, bottom=[i + j + k for i, j, k in zip(infraestrutura, equipamentos, instalacao)],
+                color='#72578f', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(posicao, manutencao,
+                bottom=[i + j + k + l for i, j, k, l in zip(infraestrutura, equipamentos, instalacao, energia)],
+                color='#4298ae',
+                edgecolor='black',
+                width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(posicao, aluguel,
+                bottom=[i + j + k + l + m for i, j, k, l, m in
+                        zip(infraestrutura, equipamentos, instalacao, energia, manutencao)],
+                color='#da8436',
+                edgecolor='black',
+                width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(posicao, falhas,
+                bottom=[i + j + k + l + m + n for i, j, k, l, m, n in
+                        zip(infraestrutura, equipamentos, instalacao, energia, manutencao, aluguel)],
+                color='#93a9cf',
+                edgecolor='black',
+                width=bar_width, zorder=3, linewidth=line_width)
+
+        # Custom X an Y axis
+        plt.xticks(posicao, rotulos)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        plt.legend(legenda, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=7)
+        plt.title('Composição TCO Rádio Aglomerado {}'.format(nome_aglomerado))
+        plt.ylabel('Composição do TCO (Unidades Monetárias $)')
+
+    def __gera_grafico_comparacao_(self, cenarios):
+        capex = list()
+        opex = list()
+
+        rotulos = list()
+        global nome_aglomerado
+
+        for key in cenarios:
+            capex_macro = np.zeros(self.municipio.tempo_analise)
+            capex_macro += cenarios[key].capex_radio_macro['infraestrutura']
+            capex_macro += cenarios[key].capex_radio_macro['equipamentos']
+            capex_macro += cenarios[key].capex_radio_macro['instalacao']
+
+            capex_hetnet = np.zeros(self.municipio.tempo_analise)
+            capex_hetnet += cenarios[key].capex_radio_hetnet['infraestrutura']
+            capex_hetnet += cenarios[key].capex_radio_hetnet['equipamentos']
+            capex_hetnet += cenarios[key].capex_radio_hetnet['instalacao']
+
+            opex_macro = np.zeros(self.municipio.tempo_analise)
+            opex_macro += cenarios[key].opex_radio_macro['energia']
+            opex_macro += cenarios[key].opex_radio_macro['manutencao']
+            opex_macro += cenarios[key].opex_radio_macro['aluguel']
+            opex_macro += cenarios[key].opex_radio_macro['falhas']
+
+            opex_hetnet = np.zeros(self.municipio.tempo_analise)
+            opex_hetnet += cenarios[key].opex_radio_hetnet['energia']
+            opex_hetnet += cenarios[key].opex_radio_hetnet['manutencao']
+            opex_hetnet += cenarios[key].opex_radio_hetnet['aluguel']
+            opex_hetnet += cenarios[key].opex_radio_hetnet['falhas']
+
+            capex.append(capex_macro.sum())
+            capex.append(capex_hetnet.sum())
+            opex.append(opex_macro.sum())
+            opex.append(opex_hetnet.sum())
+
+            rotulos.append('Macro-C'+str(cenarios[key].id))
+            rotulos.append('Hetnet-C'+str(cenarios[key].id))
+
+            if cenarios[key].tipo_cenario == 'Original':
+                nome_aglomerado = cenarios[key].tipo_aglomerado
+
+        # Posição das Barras no eixo X
+        posicao = list()
+        if len(cenarios) <= 2:
+            separacao = 2.5
+            plt.figure()
+            bar_width = 1.0
+        else:
+            separacao = 3.8
+            plt.figure(figsize=(9.0, 5.5))
+            bar_width = 2.0
+        for i in range(2 * len(cenarios)):
+            posicao.append(i * separacao)
+
+        # Legendas e Largura das Barras
+        legenda = ['CAPEX Radio', 'OPEX Radio']
+
+        line_width = 0.5
+
+        plt.bar(posicao, capex, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(posicao, opex, bottom=capex, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
+
+        # Alterações nas propriedades dos Eixos X e Y
+        plt.xticks(posicao, rotulos)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        plt.legend(legenda, loc='best')
+        plt.ylabel('TCO (Unidades Monetárias $)')
+        plt.title('Comparação TCO: Aglomerado {}'.format(nome_aglomerado))
 
     def __gera_graficos_evolucao_tco(self, entidade, tipo_entidade, id_entidade):
         plt.figure()
@@ -650,7 +826,7 @@ class TCO:
         plt.ylabel('TCO (Unidades Monetárias $)')
         plt.title('TCO da Rede Acesso - Macro e Hetnet: {} {}'.format(tipo_entidade, id_entidade))
 
-    def __gera_graficos_composicao_tco(self, entidade, tipo_entidade, id_entidade):
+    def __gera_graficos_composicao_tco_porcentagem(self, entidade, tipo_entidade, id_entidade):
         plt.figure(figsize=(8, 5.5))
 
         capex_macro = np.zeros(self.municipio.tempo_analise)
