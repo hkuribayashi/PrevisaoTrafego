@@ -1,9 +1,13 @@
+import copy
+
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from library.custos.capex import CAPEX
 from library.custos.opex import OPEX
 from library.util import util
+from library.util.util import get_cenarios_alternativos
 
 
 class TCO:
@@ -526,20 +530,13 @@ class TCO:
         return opex_radio_falhas
 
     def gera_graficos(self):
-
         for ag in self.municipio.aglomerados:
-            # Gera gráficos de evolução do TCO para cada aglomerado
-            self.__gera_graficos_evolucao_tco(ag)
-            cenarios = dict()
-            # Gera gráficos de comparação entre cenários
             if ag.tipo_cenario == 'Original':
-                cenarios['Original'] = ag
-                for outros_ag in self.municipio.aglomerados:
-                    if outros_ag.tipo_cenario == 'Alternativo' and outros_ag.cenario_original.id == ag.id:
-                        cenarios['Alternativo'+str(outros_ag.id)] = outros_ag
+                cenarios = get_cenarios_alternativos(ag, self.municipio.aglomerados)
                 self.__gera_grafico_comparacao_tco(cenarios)
                 self.__gera_graficos_composicao_tco(cenarios)
                 self.__gera_graficos_composicao_tco_porcentagem(cenarios)
+                self.__gera_graficos_evolucao_tco(cenarios)
                 plt.show()
 
     @staticmethod
@@ -706,65 +703,154 @@ class TCO:
         plt.ylabel('TCO (Unidades Monetárias $)')
         plt.title('Comparação TCO: Aglomerado {}'.format(nome_aglomerado))
 
-    def __gera_graficos_evolucao_tco(self, aglomerado):
-        plt.figure()
-
-        capex_macro = np.zeros(self.municipio.tempo_analise)
-        capex_macro += aglomerado.capex_radio_macro['infraestrutura']
-        capex_macro += aglomerado.capex_radio_macro['equipamentos']
-        capex_macro += aglomerado.capex_radio_macro['instalacao']
-
-        capex_hetnet = np.zeros(self.municipio.tempo_analise)
-        capex_hetnet += aglomerado.capex_radio_hetnet['infraestrutura']
-        capex_hetnet += aglomerado.capex_radio_hetnet['equipamentos']
-        capex_hetnet += aglomerado.capex_radio_hetnet['instalacao']
-
-        opex_macro = np.zeros(self.municipio.tempo_analise)
-        opex_macro += aglomerado.opex_radio_macro['energia']
-        opex_macro += aglomerado.opex_radio_macro['manutencao']
-        opex_macro += aglomerado.opex_radio_macro['aluguel']
-        opex_macro += aglomerado.opex_radio_macro['falhas']
-
-        opex_hetnet = np.zeros(self.municipio.tempo_analise)
-        opex_hetnet += aglomerado.opex_radio_hetnet['energia']
-        opex_hetnet += aglomerado.opex_radio_hetnet['manutencao']
-        opex_hetnet += aglomerado.opex_radio_hetnet['aluguel']
-        opex_hetnet += aglomerado.opex_radio_hetnet['falhas']
-
-        # The position of the bars on the x-axis
-        r = [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0]
+    def __gera_graficos_evolucao_tco(self, cenarios):
 
         # Legendas
         names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
-        legenda = ['CAPEX Radio', 'OPEX Radio']
-        bar_width = 1.6
-        line_width = 0.5
+        legenda = list()
+        posicao_legenda = np.zeros(self.municipio.tempo_analise)
+        line_width = 0.4
 
-        plt.bar(r, capex_macro, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
-        plt.bar(r, opex_macro, bottom=capex_macro, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
-                linewidth=line_width)
+        contador = 0
+        if len(cenarios) <= 2:
+            separacao = 5.8
+            incremento = 2.3
+            bar_width = 2.0
+        else:
+            separacao = 18.5
+            incremento = 2.7
+            bar_width = 2.7
 
+        plt.figure(figsize=(8.0, 5.5))
+
+        cor_capex_0 = '#4682b4'
+        cor_capex_1 = '#a3b8d8'
+
+        cor_opex_0 = '#c0504d'
+        cor_opex_1 = '#e9967a'
+
+        mpl.rcParams['hatch.linewidth'] = 0.3
+
+        global nome_aglomerado
+
+        for key in cenarios:
+
+            capex_macro = np.zeros(self.municipio.tempo_analise)
+            capex_macro += cenarios[key].capex_radio_macro['infraestrutura']
+            capex_macro += cenarios[key].capex_radio_macro['equipamentos']
+            capex_macro += cenarios[key].capex_radio_macro['instalacao']
+
+            opex_macro = np.zeros(self.municipio.tempo_analise)
+            opex_macro += cenarios[key].opex_radio_macro['energia']
+            opex_macro += cenarios[key].opex_radio_macro['manutencao']
+            opex_macro += cenarios[key].opex_radio_macro['aluguel']
+            opex_macro += cenarios[key].opex_radio_macro['falhas']
+
+            # Posição das Barras no eixo X
+            posicao = list()
+
+            for i in range(self.municipio.tempo_analise):
+                posicao.append((i * separacao) + contador)
+            posicao_legenda += np.array(posicao)
+
+            if contador == 0:
+                hatch = ''
+                cor_capex = cor_capex_0
+                cor_opex = cor_opex_0
+            elif contador == incremento:
+                hatch = '///'
+                plt.rcParams['hatch.color'] = '#aa007d'
+                cor_capex = cor_capex_1
+                cor_opex = cor_opex_1
+            elif (contador/2) == incremento:
+                hatch = '+'
+                plt.rcParams['hatch.color'] = '#aa007d'
+                cor_capex = cor_capex_1
+                cor_opex = cor_opex_1
+            else:
+                hatch = '.'
+                plt.rcParams['hatch.color'] = '#aa007d'
+                cor_capex = cor_capex_1
+                cor_opex = cor_opex_1
+
+            legenda.append('CAPEX Radio C'+str(cenarios[key].id))
+            legenda.append('CAPEX Radio C' + str(cenarios[key].id))
+
+            plt.bar(posicao, capex_macro, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
+            plt.bar(posicao, opex_macro, bottom=capex_macro, color=cor_opex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
+
+            if cenarios[key].tipo_cenario == 'Original':
+                nome_aglomerado = cenarios[key].tipo_aglomerado
+
+            contador += incremento
+
+        posicao_legenda = posicao_legenda/len(cenarios)
         # Custom X axis
-        plt.xticks(r, names)
+        plt.xticks(posicao_legenda, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
         plt.legend(legenda, loc='best')
         plt.ylabel('TCO (Unidades Monetárias $)')
         plt.xlabel('Unidade de Tempo (t)')
-        plt.title('Evolução do TCO ao longo dos anos - Macro: Aglomerado {}'.format(aglomerado.tipo_aglomerado))
-        plt.figure()
+        plt.title('Evolução do TCO ao longo dos anos - Macro: Aglomerado {}'.format(nome_aglomerado))
 
-        # Gerar gráfico de evolução do TCO ao longo dos anos - Hetnet
-        plt.bar(r, capex_hetnet, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
-        plt.bar(r, opex_hetnet, bottom=capex_hetnet, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
-                linewidth=line_width)
+        contador = 0
+        plt.figure(figsize=(8.0, 5.5))
+        posicao_legenda = np.zeros(self.municipio.tempo_analise)
 
+        for key in cenarios:
+
+            capex_hetnet = np.zeros(self.municipio.tempo_analise)
+            capex_hetnet += cenarios[key].capex_radio_hetnet['infraestrutura']
+            capex_hetnet += cenarios[key].capex_radio_hetnet['equipamentos']
+            capex_hetnet += cenarios[key].capex_radio_hetnet['instalacao']
+
+            opex_hetnet = np.zeros(self.municipio.tempo_analise)
+            opex_hetnet += cenarios[key].opex_radio_hetnet['energia']
+            opex_hetnet += cenarios[key].opex_radio_hetnet['manutencao']
+            opex_hetnet += cenarios[key].opex_radio_hetnet['aluguel']
+            opex_hetnet += cenarios[key].opex_radio_hetnet['falhas']
+
+            # Posição das Barras no eixo X
+            posicao = list()
+            for i in range(self.municipio.tempo_analise):
+                posicao.append((i * separacao) + contador)
+            posicao_legenda += np.array(posicao)
+
+            if contador == 0:
+                hatch = ''
+                cor_capex = cor_capex_0
+                cor_opex = cor_opex_0
+            elif contador == incremento:
+                hatch = '///'
+                plt.rcParams['hatch.color'] = '#aa007d'
+                cor_capex = cor_capex_1
+                cor_opex = cor_opex_1
+            elif (contador / 2) == incremento:
+                hatch = '+'
+                plt.rcParams['hatch.color'] = '#aa007d'
+                cor_capex = cor_capex_1
+                cor_opex = cor_opex_1
+            else:
+                hatch = '.'
+                plt.rcParams['hatch.color'] = '#aa007d'
+                cor_capex = cor_capex_1
+                cor_opex = cor_opex_1
+
+            plt.bar(posicao, capex_hetnet, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
+            plt.bar(posicao, opex_hetnet, bottom=capex_hetnet, color=cor_opex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
+
+            contador += incremento
+
+        posicao_legenda = posicao_legenda/len(cenarios)
         # Custom X axis
-        plt.xticks(r, names)
+        plt.xticks(posicao_legenda, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
         plt.legend(legenda, loc='best')
         plt.ylabel('TCO (Unidades Monetárias $)')
         plt.xlabel('Unidade de Tempo (t)')
-        plt.title('Evolução do TCO ao longo dos ano - Hetnet: Aglomerado {}'.format(aglomerado.tipo_aglomerado))
+        plt.title('Evolução do TCO ao longo dos ano - Hetnet: Aglomerado {}'.format(nome_aglomerado))
+
+
 
     @staticmethod
     def __gera_graficos_composicao_tco_porcentagem(cenarios):
