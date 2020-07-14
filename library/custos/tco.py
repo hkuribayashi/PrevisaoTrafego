@@ -774,7 +774,7 @@ class TCO:
                 cor_opex = cor_opex_1
 
             legenda.append('CAPEX Radio C'+str(cenarios[key].id))
-            legenda.append('CAPEX Radio C' + str(cenarios[key].id))
+            legenda.append('OPEX Radio C' + str(cenarios[key].id))
 
             plt.bar(posicao, capex_macro, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
             plt.bar(posicao, opex_macro, bottom=capex_macro, color=cor_opex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
@@ -849,8 +849,6 @@ class TCO:
         plt.ylabel('TCO (Unidades Monetárias $)')
         plt.xlabel('Unidade de Tempo (t)')
         plt.title('Evolução do TCO ao longo dos ano - Hetnet: Aglomerado {}'.format(nome_aglomerado))
-
-
 
     @staticmethod
     def __gera_graficos_composicao_tco_porcentagem(cenarios):
