@@ -74,6 +74,13 @@ class Aglomerado:
         # Despesas de OPEX de Radio
         self.opex_radio_macro = 0.0
         self.opex_radio_hetnet = 0.0
+        
+        # Despesas de CAPEX de Transporte MW+Macro
+        self.capex_transporte_mw_macro = 0.0
+        self.capex_transporte_mw_hetnet = 0.0
+
+        self.opex_transporte_mw_macro = 0.0
+        self.opex_transporte_mw_hetnet = 0.0
 
         if self.tipo_cenario == 'Alternativo' and self.cenario_original == -1:
             raise RuntimeError('Erro: Deve ser informado o aglomerado original')
@@ -467,9 +474,10 @@ class Aglomerado:
                     max_numero_bs = total_ano
                     # Nesse caso, dentro do aglomerado chama-se a BS que não é Hub de ponto a ponto;
                     quantidade_antena_mw_pt_pt[ano] = total_ano - np.sum(quantidade_antena_mw_pt_pt[:ano]) - 1
-            if np.sum(quantidade_sw_carrier_mw[:ano]) * quantidade_portas_sw_carrier < total_ano:
-                quantidade_sw_carrier_mw[ano] = np.ceil(total_ano / quantidade_portas_sw_carrier) - \
-                                                np.sum(quantidade_sw_carrier_mw[:ano])
+            if total_ano > 1:
+                if np.sum(quantidade_sw_carrier_mw[:ano]) * quantidade_portas_sw_carrier < total_ano:
+                    quantidade_sw_carrier_mw[ano] = np.ceil(total_ano / quantidade_portas_sw_carrier) - \
+                                                    np.sum(quantidade_sw_carrier_mw[:ano])
 
         # Multiplico por 02 (dois) a quantidade de antennas pt-pt, pois é um par, para cada BS
         quantidade_antena_mw_pt_pt = quantidade_antena_mw_pt_pt * 2
@@ -484,13 +492,13 @@ class Aglomerado:
         return quantidade_antena_mw_pt_pt, quantidade_sw_carrier_mw
 
     def calcula_dimensionamento_rede_transporte(self):
-        print('Estratégia Macro:')
-        self.qtd_fibra_instalada_macro_only, self.qtd_modem_pon_macro_only = \
-            self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_macro'])
+        # print('Estratégia Macro:')
+        # self.qtd_fibra_instalada_macro_only, self.qtd_modem_pon_macro_only = \
+        #    self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_macro'])
 
-        print('Estratégia Hetnet:')
-        self.qtd_fibra_instalada_hetnet, self.qtd_modem_pon_hetnet = \
-            self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
+        # print('Estratégia Hetnet:')
+        # self.qtd_fibra_instalada_hetnet, self.qtd_modem_pon_hetnet = \
+        #     self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
 
         print('Estratégia Macro:')
         self.qtd_antena_mw_pt_pt_macro_only, self.qtd_sw_carrier_mw_macro_only = \

@@ -15,10 +15,12 @@ class TCO:
     def __init__(self, municipio):
         self.municipio = municipio
 
-        # Despesas de CAPEX de Radio
+        # Despesas de CAPEX de Radio Macro
         self.capex_radio_macro = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
                                       equipamentos=np.zeros(self.municipio.tempo_analise),
                                       instalacao=np.zeros(self.municipio.tempo_analise))
+
+        # Despesas de CAPEX de Radio Hetnet
         self.capex_radio_hetnet = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
                                        equipamentos=np.zeros(self.municipio.tempo_analise),
                                        instalacao=np.zeros(self.municipio.tempo_analise))
@@ -35,11 +37,163 @@ class TCO:
                                       aluguel=np.zeros(self.municipio.tempo_analise),
                                       falhas=np.zeros(self.municipio.tempo_analise))
 
+        # Despesas de CAPEX de Transporte MW+Macro
+        self.capex_transporte_mw_macro = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
+                                              equipamentos=np.zeros(self.municipio.tempo_analise),
+                                              instalacao=np.zeros(self.municipio.tempo_analise))
+
+        # Despesas de OPEX de Transporte MW+MACRO
+        self.opex_transporte_mw_macro = dict(energia=np.zeros(self.municipio.tempo_analise),
+                                             manutencao=np.zeros(self.municipio.tempo_analise),
+                                             aluguel=np.zeros(self.municipio.tempo_analise),
+                                             falhas=np.zeros(self.municipio.tempo_analise))
+
+        # Despesas de CAPEX de Transporte MW+Hetnet
+        self.capex_transporte_mw_hetnet = dict(infraestrutura=np.zeros(self.municipio.tempo_analise),
+                                               equipamentos=np.zeros(self.municipio.tempo_analise),
+                                               instalacao=np.zeros(self.municipio.tempo_analise))
+
+        # Despesas de OPEX de Transporte MW+Hetnet
+        self.opex_transporte_mw_hetnet = dict(energia=np.zeros(self.municipio.tempo_analise),
+                                              manutencao=np.zeros(self.municipio.tempo_analise),
+                                              aluguel=np.zeros(self.municipio.tempo_analise),
+                                              falhas=np.zeros(self.municipio.tempo_analise))
+
     def calcula_capex(self):
         self.__calcula_capex_radio()
+        self.__calcula_capex_transporte()
 
     def calcula_opex(self):
         self.__calcula_opex_radio()
+
+    def __calcula_capex_transporte(self):
+        for ag in self.municipio.aglomerados:
+            print('CAPEX de Transporte do Aglomerado {}:'.format(ag.id))
+
+            equipamentos, instalacao = \
+                self.__calcula_capex_transporte_mw_implantacoes(ag.qtd_antena_mw_pt_pt_macro_only,
+                                                                ag.qtd_sw_carrier_mw_macro_only)
+            infraestrutura = self.__calcula_capex_transporte_mw_infraestrutura(ag.qtd_antena_mw_pt_pt_macro_only, 'Macro')
+            ag.capex_transporte_mw_macro['equipamentos'] += equipamentos
+            ag.capex_transporte_mw_macro['instalacao'] += instalacao
+            ag.capex_transporte_mw_macro['infraestrutura'] += infraestrutura
+
+            if ag.tipo_cenario == 'Original':
+                self.capex_transporte_mw_macro['infraestrutura'] += infraestrutura
+                self.capex_transporte_mw_macro['equipamentos'] += equipamentos
+                self.capex_transporte_mw_macro['instalacao'] += instalacao
+
+            print('Implantação Transporte MW+Macro Only')
+            print('CAPEX Transporte Infraestrutura:')
+            print(infraestrutura)
+            print('CAPEX Trasnporte Equipamentos:')
+            print(equipamentos)
+            print('CAPEX Transporte Instalação de Equipamentos:')
+            print(instalacao)
+            print()
+
+            equipamentos, instalacao = \
+                self.__calcula_capex_transporte_mw_implantacoes(ag.qtd_antena_mw_pt_pt_hetnet,
+                                                                ag.qtd_sw_carrier_mw_hetnet)
+            infraestrutura = self.__calcula_capex_transporte_mw_infraestrutura(ag.qtd_antena_mw_pt_pt_hetnet, 'Hetnet')
+            ag.capex_transporte_mw_hetnet['equipamentos'] += equipamentos
+            ag.capex_transporte_mw_hetnet['instalacao'] += instalacao
+            ag.capex_transporte_mw_hetnet['infraestrutura'] += infraestrutura
+
+            if ag.tipo_cenario == 'Original':
+                self.capex_transporte_mw_hetnet['infraestrutura'] += infraestrutura
+                self.capex_transporte_mw_hetnet['equipamentos'] += equipamentos
+                self.capex_transporte_mw_hetnet['instalacao'] += instalacao
+
+            print('Implantação Transporte MW+Hetnet')
+            print('CAPEX Transporte Infraestrutura:')
+            print(infraestrutura)
+            print('CAPEX Trasnporte Equipamentos:')
+            print(equipamentos)
+            print('CAPEX Transporte Instalação de Equipamentos:')
+            print(instalacao)
+            print()
+
+    def __calcula_capex_transporte_mw_implantacoes(self, qtd_antena_mw, qtd_sw_carrier_mw):
+        capex_transporte_instalacao = np.zeros(self.municipio.tempo_analise)
+        capex_transporte_equipamentos = np.zeros(self.municipio.tempo_analise)
+
+        # Realizar o cálculo de atualização do valor de salário do técnico de instalação ajustado por ano
+        valor_salario_tecnico_ajustado = util.atualizacao_linear(CAPEX.SALARIO_TECNICO.valor,
+                                                                 CAPEX.TAXA_CORRECAO_SALARARIO.valor,
+                                                                 self.municipio.tempo_analise)
+
+        # Depois calcula-se a variacao do preço de aquisição de equipamentos ao longo dos anos
+        hardware_mw_small = util.atualizacao_linear(CAPEX.ANTENA_MW_SMALL.valor,
+                                                    CAPEX.TAXA_REAJUSTE.valor,
+                                                    self.municipio.tempo_analise)
+
+        hardware_sw = util.atualizacao_linear(CAPEX.SW_CARRIER.valor,
+                                              CAPEX.TAXA_REAJUSTE.valor,
+                                              self.municipio.tempo_analise)
+
+        capex_transporte_equipamentos[0] += CAPEX.ANTENA_MW_LARGE.valor
+
+        # Deslocamento: Contabiliza duas viagens (ida e volta) para a quantidade de técnicos necessária
+        despesas_deslocamento = self.municipio.tempo_viagem * \
+                                CAPEX.QTD_TECNICOS_INSTALACAO.valor * \
+                                CAPEX.QTD_TIMES.valor * \
+                                valor_salario_tecnico_ajustado[0] * \
+                                2.0
+
+        # Mão-de-Obra: Multiplicar o tempo de atualização pelo salário do técnico e pela qtd de técnicos
+        despesas_instalacao = CAPEX.QTD_TECNICOS_INSTALACAO.valor * \
+                              CAPEX.QTD_TIMES.valor * \
+                              valor_salario_tecnico_ajustado[0] * \
+                              CAPEX.TEMPO_INSTALACAO_MW_LARGE.valor
+
+        capex_transporte_instalacao[0] += despesas_deslocamento + despesas_instalacao
+
+        for ano, qtd_antena in enumerate(qtd_antena_mw):
+            if qtd_antena > 0 or qtd_sw_carrier_mw[ano] > 0:
+
+                # Deslocamento: Contabiliza duas viagens (ida e volta) para a quantidade de técnicos necessária
+                # Se estivermos no Ano 0, pode-se aproveitar a despesa de deslocamento para a Antena Hub
+                if ano != 0:
+                    despesas_deslocamento = self.municipio.tempo_viagem * \
+                                            CAPEX.QTD_TECNICOS_INSTALACAO.valor * \
+                                            CAPEX.QTD_TIMES.valor * \
+                                            valor_salario_tecnico_ajustado[ano] * \
+                                            2.0
+
+                tempo_instalacao = CAPEX.TEMPO_INSTALACAO_MW_SMALL.valor * qtd_antena
+                tempo_instalacao += CAPEX.TEMPO_INSTALACAO_SW.valor * qtd_sw_carrier_mw[ano]
+
+                # Mão-de-Obra: Multiplicar o tempo de instalação pelo salário do técnico e pela qtd de técnicos
+                despesas_instalacao = CAPEX.QTD_TECNICOS_INSTALACAO.valor * \
+                                      CAPEX.QTD_TIMES.valor * \
+                                      valor_salario_tecnico_ajustado[ano] * \
+                                      tempo_instalacao
+
+                capex_transporte_equipamentos[ano] += qtd_antena * hardware_mw_small[ano]
+                capex_transporte_equipamentos[ano] += qtd_sw_carrier_mw[ano] * hardware_sw[ano]
+                capex_transporte_instalacao[ano] += despesas_deslocamento + despesas_instalacao
+                if ano != 0:
+                    capex_transporte_instalacao[ano] += despesas_deslocamento
+
+        return capex_transporte_equipamentos, capex_transporte_instalacao
+
+    def __calcula_capex_transporte_mw_infraestrutura(self, qtd_antena_mw, tipo_rede_radio):
+        capex_transporte_infraestrutura = np.zeros(self.municipio.tempo_analise)
+
+        if tipo_rede_radio == 'Hetnet':
+            for ano, qtd_antena in enumerate(qtd_antena_mw):
+                if qtd_antena > 0:
+                    qtd_hastes = (qtd_antena / 2.0)
+                    custo_infraestrutura = qtd_hastes * CAPEX.HASTE_MW.valor
+
+                    # Realiza o cálculo de atualizacao do preco de aquisição por ano
+                    infraestrutura_por_ano = util.atualizacao_linear(custo_infraestrutura,
+                                                                     CAPEX.TAXA_REAJUSTE.valor,
+                                                                     self.municipio.tempo_analise)
+                    capex_transporte_infraestrutura[ano] += infraestrutura_por_ano[ano]
+
+        return capex_transporte_infraestrutura
 
     def __calcula_capex_radio(self):
         for ag in self.municipio.aglomerados:
@@ -535,9 +689,69 @@ class TCO:
                 cenarios = get_cenarios_alternativos(ag, self.municipio.aglomerados)
                 self.__gera_grafico_comparacao_tco(cenarios)
                 self.__gera_graficos_composicao_tco(cenarios)
+                self.__gera_graficos_composicao_tco_transporte(cenarios)
                 self.__gera_graficos_composicao_tco_porcentagem(cenarios)
                 self.__gera_graficos_evolucao_tco(cenarios)
                 plt.show()
+
+    @staticmethod
+    def __gera_graficos_composicao_tco_transporte(cenarios):
+        global nome_aglomerado
+
+        infraestrutura = list()
+        equipamentos = list()
+        instalacao = list()
+        rotulos = list()
+
+        for key in cenarios:
+            infraestrutura.append(cenarios[key].capex_transporte_mw_macro['infraestrutura'].sum())
+            infraestrutura.append(cenarios[key].capex_transporte_mw_hetnet['infraestrutura'].sum())
+
+            equipamentos.append(cenarios[key].capex_transporte_mw_macro['equipamentos'].sum())
+            equipamentos.append(cenarios[key].capex_transporte_mw_hetnet['equipamentos'].sum())
+
+            instalacao.append(cenarios[key].capex_transporte_mw_macro['instalacao'].sum())
+            instalacao.append(cenarios[key].capex_transporte_mw_hetnet['instalacao'].sum())
+
+            rotulos.append('Macro-C' + str(cenarios[key].id))
+            rotulos.append('Hetnet-C' + str(cenarios[key].id))
+
+            if cenarios[key].tipo_cenario == 'Original':
+                nome_aglomerado = cenarios[key].tipo_aglomerado
+
+        # Posição das Barras no eixo X
+        posicao = list()
+        if len(cenarios) <= 2:
+            separacao = 2.5
+            plt.figure(figsize=(8.0, 5.5))
+            bar_width = 1.0
+        else:
+            separacao = 3.8
+            plt.figure(figsize=(9.0, 5.5))
+            bar_width = 2.0
+
+        for i in range(2 * len(cenarios)):
+            posicao.append(i * separacao)
+
+        legenda = ['Infra.', 'Equip.', 'Inst.', 'Energ.', 'Manut.', 'Aluguel', 'Falhas']
+        line_width = 0.5
+
+        plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
+
+        plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width,
+                zorder=3,
+                linewidth=line_width)
+
+        plt.bar(posicao, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#88a54f',
+                edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+
+        # Custom X an Y axis
+        plt.xticks(posicao, rotulos)
+        plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+        plt.legend(legenda, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=7)
+        plt.title('Composição TCO Transporte Aglomerado {}'.format(nome_aglomerado))
+        plt.ylabel('Composição do TCO (Unidades Monetárias $)')
 
     @staticmethod
     def __gera_graficos_composicao_tco(cenarios):
@@ -598,9 +812,11 @@ class TCO:
         legenda = ['Infra.', 'Equip.', 'Inst.', 'Energ.', 'Manut.', 'Aluguel', 'Falhas']
         line_width = 0.5
 
-        plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+        plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
 
-        plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+        plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width,
+                zorder=3,
                 linewidth=line_width)
 
         plt.bar(posicao, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#88a54f',
@@ -668,8 +884,8 @@ class TCO:
             opex.append(opex_macro.sum())
             opex.append(opex_hetnet.sum())
 
-            rotulos.append('Macro-C'+str(cenarios[key].id))
-            rotulos.append('Hetnet-C'+str(cenarios[key].id))
+            rotulos.append('Macro-C' + str(cenarios[key].id))
+            rotulos.append('Hetnet-C' + str(cenarios[key].id))
 
             if cenarios[key].tipo_cenario == 'Original':
                 nome_aglomerado = cenarios[key].tipo_aglomerado
@@ -762,7 +978,7 @@ class TCO:
                 plt.rcParams['hatch.color'] = '#aa007d'
                 cor_capex = cor_capex_1
                 cor_opex = cor_opex_1
-            elif (contador/2) == incremento:
+            elif (contador / 2) == incremento:
                 hatch = '+'
                 plt.rcParams['hatch.color'] = '#aa007d'
                 cor_capex = cor_capex_1
@@ -773,18 +989,20 @@ class TCO:
                 cor_capex = cor_capex_1
                 cor_opex = cor_opex_1
 
-            legenda.append('CAPEX Radio C'+str(cenarios[key].id))
+            legenda.append('CAPEX Radio C' + str(cenarios[key].id))
             legenda.append('OPEX Radio C' + str(cenarios[key].id))
 
-            plt.bar(posicao, capex_macro, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
-            plt.bar(posicao, opex_macro, bottom=capex_macro, color=cor_opex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
+            plt.bar(posicao, capex_macro, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch,
+                    edgecolor='black')
+            plt.bar(posicao, opex_macro, bottom=capex_macro, color=cor_opex, width=bar_width, zorder=3,
+                    linewidth=line_width, hatch=hatch, edgecolor='black')
 
             if cenarios[key].tipo_cenario == 'Original':
                 nome_aglomerado = cenarios[key].tipo_aglomerado
 
             contador += incremento
 
-        posicao_legenda = posicao_legenda/len(cenarios)
+        posicao_legenda = posicao_legenda / len(cenarios)
         # Custom X axis
         plt.xticks(posicao_legenda, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
@@ -836,12 +1054,14 @@ class TCO:
                 cor_capex = cor_capex_1
                 cor_opex = cor_opex_1
 
-            plt.bar(posicao, capex_hetnet, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
-            plt.bar(posicao, opex_hetnet, bottom=capex_hetnet, color=cor_opex, width=bar_width, zorder=3, linewidth=line_width, hatch=hatch, edgecolor='black')
+            plt.bar(posicao, capex_hetnet, color=cor_capex, width=bar_width, zorder=3, linewidth=line_width,
+                    hatch=hatch, edgecolor='black')
+            plt.bar(posicao, opex_hetnet, bottom=capex_hetnet, color=cor_opex, width=bar_width, zorder=3,
+                    linewidth=line_width, hatch=hatch, edgecolor='black')
 
             contador += incremento
 
-        posicao_legenda = posicao_legenda/len(cenarios)
+        posicao_legenda = posicao_legenda / len(cenarios)
         # Custom X axis
         plt.xticks(posicao_legenda, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
@@ -895,13 +1115,13 @@ class TCO:
         for index in range(len(infraestrutura)):
             soma = infraestrutura[index] + equipamentos[index] + instalacao[index] + energia[index] + \
                    manutencao[index] + aluguel[index] + falhas[index]
-            infraestrutura[index] = (infraestrutura[index]/soma) * 100
-            equipamentos[index] = (equipamentos[index]/soma) * 100
-            instalacao[index] = (instalacao[index]/soma) * 100
-            energia[index] = (energia[index]/soma) * 100
-            manutencao[index] = (manutencao[index]/soma) * 100
-            aluguel[index] = (aluguel[index]/soma) * 100
-            falhas[index] = (falhas[index]/soma) * 100
+            infraestrutura[index] = (infraestrutura[index] / soma) * 100
+            equipamentos[index] = (equipamentos[index] / soma) * 100
+            instalacao[index] = (instalacao[index] / soma) * 100
+            energia[index] = (energia[index] / soma) * 100
+            manutencao[index] = (manutencao[index] / soma) * 100
+            aluguel[index] = (aluguel[index] / soma) * 100
+            falhas[index] = (falhas[index] / soma) * 100
 
         # Posição das Barras no eixo X
         posicao = list()
@@ -920,8 +1140,10 @@ class TCO:
         legenda = ['Infra.', 'Equip.', 'Inst.', 'Energ.', 'Manut.', 'Aluguel', 'Falhas']
         line_width = 0.5
 
-        plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
-        plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width, zorder=3,
+        plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3,
+                linewidth=line_width)
+        plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width,
+                zorder=3,
                 linewidth=line_width)
         plt.bar(posicao, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#88a54f',
                 edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)

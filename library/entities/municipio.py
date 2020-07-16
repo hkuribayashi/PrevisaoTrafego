@@ -99,6 +99,28 @@ class Municipio():
                                         aluguel=np.zeros(self.tempo_analise),
                                         falhas=np.zeros(self.tempo_analise))
 
+            # Despesas de CAPEX de Transporte MW+Macro
+            ag.capex_transporte_mw_macro = dict(infraestrutura=np.zeros(self.tempo_analise),
+                                                equipamentos=np.zeros(self.tempo_analise),
+                                                instalacao=np.zeros(self.tempo_analise))
+
+            # Despesas de OPEX de Transporte MW+MACRO
+            ag.opex_transporte_mw_macro = dict(energia=np.zeros(self.tempo_analise),
+                                               manutencao=np.zeros(self.tempo_analise),
+                                               aluguel=np.zeros(self.tempo_analise),
+                                               falhas=np.zeros(self.tempo_analise))
+
+            # Despesas de CAPEX de Transporte MW+Hetnet
+            ag.capex_transporte_mw_hetnet = dict(infraestrutura=np.zeros(self.tempo_analise),
+                                                 equipamentos=np.zeros(self.tempo_analise),
+                                                 instalacao=np.zeros(self.tempo_analise))
+
+            # Despesas de OPEX de Transporte MW+Hetnet
+            ag.opex_transporte_mw_hetnet = dict(energia=np.zeros(self.tempo_analise),
+                                                manutencao=np.zeros(self.tempo_analise),
+                                                aluguel=np.zeros(self.tempo_analise),
+                                                falhas=np.zeros(self.tempo_analise))
+
     def calcula_demanda_trafego(self):
         self.__ajustar_aglomerados()
         for ag in self.aglomerados:
