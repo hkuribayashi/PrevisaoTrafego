@@ -42,15 +42,31 @@ class OPEX(Enum):
     TAXA_ARF_PICO = ('Taxa Anual de Falha Pico BS', 'taxa', 0.00584)
     TAXA_ARF_FEMTO = ('Taxa Anual de Falha Femto BS', 'taxa', 0.00584)
 
+    TAXA_ARF_MW_LARGE = ('Taxa Anual de Falha MW Large', 'taxa', 0.0584)
+    TAXA_ARF_MW_SMALL = ('Taxa Anual de Falha MW Small', 'taxa', 0.0584)
+
     # Tempo médio de reparos
     MTTR_MACRO = ('Tempo Médio de Reparo de Macro BS', 'horas/bs', 1.0)
     MTTR_MICRO = ('Tempo Médio de Reparo de Micro BS', 'horas/bs', 1.0)
     MTTR_PICO = ('Tempo Médio de Reparo de Pico BS', 'horas/bs', 0.5)
     MTTR_FEMTO = ('Tempo Médio de Reparo de Femto BS', 'horas/bs', 0.5)
 
+    MTTR_MW_LARGE = ('Tempo Médio de Reparo de MW Large', 'horas/antena', 1.0)
+    MTTR_MW_SMALL = ('Tempo Médio de Reparo de MW Small', 'horas/antena', 0.5)
+
+    MTTR_MW_SW = ('Tempo Médio de Reparo de SW', 'horas/switch', 0.5)
+
     # Penalidades
     THRESHOLD_MACRO = ('Tempo Mínimo de Funcionamento por Ano', 'horas/ano', 8322.0)
     TAXA_PENALIDADE = ('Taxa de Penalidade por Indiponibilidade', '$/hora', 0.00909)
+
+    # MW
+    LICENSA_MW_SMALL = ('Custo de Licença Anual Link MW Small', '$/ano', 0.00181818)
+    LICENSA_MW_LARGE = ('Custo de Licença Anual Link MW Small', '$/ano', 0.00181818)
+
+    MANUTENCAO_MW_LARGE = ('Valor de manutencao anual por MW Large', '$/antena', 0.001038)
+    MANUTENCAO_MW_SMALL = ('Valor de manutencao anual por MW Small', '$/antena', 0.000259)
+    MANUTENCAO_SW = ('Valor de manutencao anual por SW', '$/switch', 0.00093438)
 
     def __init__(self, descricao, unidade_medida, valor):
         self.descricao = descricao
@@ -59,4 +75,3 @@ class OPEX(Enum):
 
     def __str__(self):
         return "OPEX descricao={}, unidade_medida={}, valor={}".format(self.descricao, self.unidade_medida, self.valor)
-

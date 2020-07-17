@@ -49,15 +49,15 @@ class CAPEX(Enum):
     TAXA_CORRECAO_SALARARIO = ('Taxa de Correção de Salário do Técnico de Instalação/Manutenção', '%/ano', 0.07)
 
     # Tempo de Instalação de HW por tipo de BS
-    TEMPO_INSTALACAO_MW_SMALL = ('Tempo de Instalacao de Link MW SMALL', 'horas', 2.0)
-    TEMPO_INSTALACAO_MW_LARGE = ('Tempo de Instalacao de Link MW SMALL', 'horas', 4.0)
+    TEMPO_INSTALACAO_MW_SMALL = ('Tempo de Instalacao de Link MW SMALL', 'horas', 3.0)
+    TEMPO_INSTALACAO_MW_LARGE = ('Tempo de Instalacao de Link MW SMALL', 'horas', 6.0)
     TEMPO_INSTALACAO_SW = ('Tempo de Instalacao de SW', 'horas', 1.0)
 
-    ANTENA_MW_SMALL = ('Antena MW', '$/unidade', 0.1)
-    ANTENA_MW_LARGE = ('Antena MW', '$/unidade', 0.2)
-    SW_CARRIER = ('Switch Carrier', '$/unidade', 0.05)
+    ANTENA_MW_SMALL = ('Antena MW', '$/unidade', 0.005191)
+    ANTENA_MW_LARGE = ('Antena MW', '$/unidade', 0.020764)
+    SW_CARRIER = ('Switch Carrier', '$/unidade', 0.018687)
 
-    HASTE_MW = ('Haste Antena MW', '$/unidade', 0.01)
+    HASTE_MW = ('Haste Antena MW', '$/unidade', 0.003789)
 
     def __init__(self, descricao, unidade_medida, valor):
         self.descricao = descricao

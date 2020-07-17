@@ -68,3 +68,7 @@ def get_cenarios_alternativos(aglomerado_original, lista_aglomerados):
         if outros_ag.tipo_cenario == 'Alternativo' and outros_ag.cenario_original.id == aglomerado_original.id:
             cenarios['Alternativo' + str(outros_ag.id)] = outros_ag
     return cenarios
+
+
+def func(pct, val):
+    return '{:.1f}%\n({:d} kg)'.format(pct, 1)

@@ -91,6 +91,4 @@ m1.calcula_dimensionamento_centraloffice()
 # m1.gera_graficos_municipio()
 
 tco = TCO(m1)
-tco.calcula_capex()
-tco.calcula_opex()
 tco.gera_graficos()
