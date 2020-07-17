@@ -272,7 +272,10 @@ def composicao_tco_porcentagem(cenarios, tipo_grafico, path):
     global ax
 
     group_names = ['CAPEX', 'OPEX']
-    subgroup_names = ['Equip.', 'Inst.', 'Infra.', 'Manut.', 'Aluguel', 'Falhas', 'Energ.']
+    if tipo_grafico == 'Radio':
+        subgroup_names = ['Equip.', 'Inst.', 'Infra.', 'Manut.', 'Aluguel', 'Falhas', 'Energ.']
+    else:
+        subgroup_names = ['Equip.', 'Inst.', 'Infra.', 'Manut.', 'Espec.', 'Falhas', 'Energ.']
 
     for i, ax in enumerate(axes.flatten()):
 
