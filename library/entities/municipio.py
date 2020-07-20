@@ -44,13 +44,6 @@ class Municipio():
     def adicionar_aglomerado(self, novo_aglomerado):
         self.aglomerados.append(novo_aglomerado)
 
-    '''
-    O método __ajustar_aglomerados só existe porque optou-se por não se colocar visibilidade na associação entre as 
-    classes Municipio e Aglomerado. Isto é, se quando ao instancia a classe Aglomerado, o Municipio fosse passado como
-    parâmetro, este método seria desnecessário, uma vez que seria possível acessar todos os atributos de Municipio de 
-    dentro do método construtor da Classe Aglomerado
-    '''
-
     def __ajustar_aglomerados(self):
         total_habitantes = 0.0
         for ag in self.aglomerados:
@@ -59,67 +52,14 @@ class Municipio():
             ag.percentual_habitantes = ag.total_habitantes/total_habitantes
             ag.total_servidores_publicos = ag.percentual_habitantes * self.total_servidores_publicos
             ag.total_servidores_publicos_saude = np.ceil(ag.percentual_habitantes * self.total_servidores_publicos_saude)
+            ag.percentual_pop_ativa = self.percentual_pop_ativa
+            ag.total_pop_ativa = ag.percentual_pop_ativa * ag.total_habitantes
             ag.total_trabalhadores_informais = ag.total_pop_ativa - ag.total_servidores_publicos - ag.total_servidores_publicos_saude
             ag.total_veiculos = ag.percentual_habitantes * self.total_veiculos
             ag.total_alunos = ag.percentual_habitantes * self.total_alunos
             ag.total_docentes = ag.percentual_habitantes * self.total_docentes
-            ag.tempo_analise = self.tempo_analise
-            ag.percentual_alunos_ead = self.percentual_alunos_ead
-            ag.capacidade_atendimento_rede_acesso['implantacao_macro'] = np.zeros(self.tempo_analise)
-            ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'] = np.zeros(self.tempo_analise)
-            ag.demanda_trafego = np.zeros(self.tempo_analise)
-            ag.percentual_pop_ativa = self.percentual_pop_ativa
-            ag.total_pop_ativa = ag.percentual_pop_ativa * ag.total_habitantes
             ag.total_pop_inativa = ag.total_habitantes - ag.total_pop_ativa
-
-            self.qtd_fibra_instalada_macro_only = np.zeros(self.tempo_analise)
-            self.qtd_modem_pon_macro_only = np.zeros(self.tempo_analise)
-            self.qtd_fibra_instalada_hetnet = np.zeros(self.tempo_analise)
-            self.qtd_modem_pon_hetnet = np.zeros(self.tempo_analise)
-            self.qtd_antena_mw_pt_pt_macro_only = np.zeros(self.tempo_analise)
-            self.qtd_antena_mw_pt_mp_macro_only = np.zeros(self.tempo_analise)
-            self.qtd_antena_mw_pt_pt_hetnet = np.zeros(self.tempo_analise)
-            self.qtd_antena_mw_pt_mp_hetnet = np.zeros(self.tempo_analise)
-
-            # Despesas de CAPEX de Radio
-            ag.capex_radio_macro = dict(infraestrutura=np.zeros(self.tempo_analise),
-                                        equipamentos=np.zeros(self.tempo_analise),
-                                        instalacao=np.zeros(self.tempo_analise))
-            ag.capex_radio_hetnet = dict(infraestrutura=np.zeros(self.tempo_analise),
-                                         equipamentos=np.zeros(self.tempo_analise),
-                                         instalacao=np.zeros(self.tempo_analise))
-
-            # Despesas de OPEX de Radio
-            ag.opex_radio_macro = dict(energia=np.zeros(self.tempo_analise),
-                                       manutencao=np.zeros(self.tempo_analise),
-                                       aluguel=np.zeros(self.tempo_analise),
-                                       falhas=np.zeros(self.tempo_analise))
-            ag.opex_radio_hetnet = dict(energia=np.zeros(self.tempo_analise),
-                                        manutencao=np.zeros(self.tempo_analise),
-                                        aluguel=np.zeros(self.tempo_analise),
-                                        falhas=np.zeros(self.tempo_analise))
-
-            # Despesas de CAPEX de Transporte MW+Macro
-            ag.capex_transporte_mw_macro = dict(infraestrutura=np.zeros(self.tempo_analise),
-                                                equipamentos=np.zeros(self.tempo_analise),
-                                                instalacao=np.zeros(self.tempo_analise))
-
-            # Despesas de OPEX de Transporte MW+MACRO
-            ag.opex_transporte_mw_macro = dict(energia=np.zeros(self.tempo_analise),
-                                               manutencao=np.zeros(self.tempo_analise),
-                                               aluguel=np.zeros(self.tempo_analise),
-                                               falhas=np.zeros(self.tempo_analise))
-
-            # Despesas de CAPEX de Transporte MW+Hetnet
-            ag.capex_transporte_mw_hetnet = dict(infraestrutura=np.zeros(self.tempo_analise),
-                                                 equipamentos=np.zeros(self.tempo_analise),
-                                                 instalacao=np.zeros(self.tempo_analise))
-
-            # Despesas de OPEX de Transporte MW+Hetnet
-            ag.opex_transporte_mw_hetnet = dict(energia=np.zeros(self.tempo_analise),
-                                                manutencao=np.zeros(self.tempo_analise),
-                                                aluguel=np.zeros(self.tempo_analise),
-                                                falhas=np.zeros(self.tempo_analise))
+            ag.percentual_alunos_ead = self.percentual_alunos_ead
 
     def calcula_demanda_trafego(self):
         self.__ajustar_aglomerados()
@@ -139,29 +79,6 @@ class Municipio():
             total_hetnet += len(ag.lista_bs['implantacao_hetnet'])
             ag.calcula_dimensionamento_rede_transporte()
 
-
-        '''
-        Calcula o tranporte entre os aglomerados
-        Todo Central Office deverá possuir um Carrier Ethernet Switch para ligar a OLT ou o Hub MW Central
-        É necessário definir a topologia da rede através da árvore geradora mínima (AGM)
-        No calculos de exemplo abaixo considero a topologia da AGM como Sede -> Ubim -> Nova Maracanã, sendo:
-        Ubim como um nó "não folha", Nova Maracanã como um nó folha e a Sede sendo a raiz da AGM
-        '''
-
-        # Substituir por cálculo com dados da AGM para o município em questão
-        # qtd_aglomerados deve ser o numero de aglomerados "folha" com exceção da sede
-        qtd_aglomerados_folha = 1
-
-        # qtd_aglomerados_nao_folha deve ser o numero de aglomerados que não são "folha" com exceção da sede
-        qt_aglomerados_nao_folha = len(self.aglomerados) - qtd_aglomerados_folha - 1
-
-        qtd_portas_sw_carrier = 24
-        qtd_sw_carrier = np.ceil(qtd_portas_sw_carrier/qt_aglomerados_nao_folha)
-
-        qtd_onu_por_olt = 32
-        self.olt_implantada['implantacao_macro'][0] = math.ceil(total_macro/qtd_onu_por_olt)
-        self.olt_implantada['implantacao_hetnet'][0] = math.ceil(total_hetnet/qtd_onu_por_olt)
-
         '''
         Calculo da quantidade de antenas MW Pt-Pt entre os aglomerados
         Antenas com capacidade de transmissão superior às instaladas dentro dos aglomerados
@@ -174,35 +91,10 @@ class Municipio():
         '''
         self.antenas_pt_pt[0] = 2 * 2
 
-        '''
-        Calculo do total de Fibra Otica a ser implantada (km)
-        Este cálculo deverá ser substituído pela soma das arestas da AGM
-        Novamente, nos calculos abaixo considero a topologia da AGM como Sede -> Ubim -> Nova Maracanã
-        '''
-        distancia_entre_sede_ubim = 18.0
-        distancia_entre_ubim_novamaracana = 1.5
-
-        # Reliza a implantação da infraestrutura de fibra ótica entre os aglomerado no primeiro ano (t)
-        # Estratégia Macro Only
-        self.fibra_otica_implantada['implantacao_macro'][0] += distancia_entre_sede_ubim \
-                                                               + distancia_entre_ubim_novamaracana
-
-        # Estratégia HetNet
-        self.fibra_otica_implantada['implantacao_hetnet'][0] += distancia_entre_sede_ubim \
-                                                                + distancia_entre_ubim_novamaracana
-
         for ag in self.aglomerados:
-            # Somatório do quantitativo de fibra Otica implantada dentro de todos os aglomerados por ano
-            self.fibra_otica_implantada['implantacao_macro'] += ag.qtd_fibra_instalada_macro_only
-            self.fibra_otica_implantada['implantacao_hetnet'] += ag.qtd_fibra_instalada_hetnet
-
-            # Somatório do quantitativo de modems PON implantados dentro de todos os aglomerados por ano
-            self.modem_pon_implantado['implantacao_macro'] += ag.qtd_modem_pon_macro_only
-            self.modem_pon_implantado['implantacao_hetnet'] += ag.qtd_modem_pon_hetnet
-
             # Somatório do quantitativo de Antenas MW pt-pt baixa capacidade (dentro do aglomerado)
-            self.antena_mw_implantada_pt_pt['implantacao_macro'] += ag.qtd_antena_mw_pt_pt_macro_only
-            self.antena_mw_implantada_pt_pt['implantacao_hetnet'] += ag.qtd_antena_mw_pt_pt_hetnet
+            self.antena_mw_implantada_pt_pt['implantacao_macro'] += ag.qtd_antena_mw_macro
+            self.antena_mw_implantada_pt_pt['implantacao_hetnet'] += ag.qtd_antena_mw_hetnet
 
             # Somatório do quantitativo de Antenas MW pt-Mp baixa capacidade (dentro do aglomerado)
             self.sw_carrier_mw_implantada['implantacao_macro'] += ag.qtd_sw_carrier_mw_macro_only
@@ -249,35 +141,6 @@ class Municipio():
 
         print('Quantidade de SW de Agregação MW:')
         print(self.sw_agregacao)
-
-        '''
-        Calcula a quantidade de OLTs que devem ser instaladas no Central Office
-        O cálculo é proporcional ao número de BSs, que varia entre as implantações macro only e hetnet dentro de 
-        cada aglomerado  
-        '''
-
-        print('Quantidade Modem PON Implado Acumulado por Ano:')
-        print('Estratégia Macro Only')
-        print(self.modem_pon_implantado['implantacao_macro'])
-        print('Estratégia Hetnet')
-        print(self.modem_pon_implantado['implantacao_hetnet'])
-
-        '''
-        A partir dos trabalho de Fiorani et al (2016), seria possível ligar até 40 BS por OLT,
-        desta forma vamos assumir que vamos realizar a implantação de 01 OLT no Ano 0.
-        Caso haja um cenário com um número maior de aglomerados ou BS, seria necessário realziar um cálculo
-        analítico em função da variaveis modem_pon_implantado (conforme print acima).
-        '''
-
-        self.olt_implantada['implantacao_macro'][0] = 1
-        self.olt_implantada['implantacao_hetnet'][0] = 1
-
-        print('Quantidade de OLTs implantadas por Ano:')
-        print('Estratégia Macro Only')
-        print(self.olt_implantada['implantacao_macro'])
-        print('Estratégia Hetnet')
-        print(self.olt_implantada['implantacao_hetnet'])
-        print()
 
     def gera_graficos_municipio(self):
         time = np.arange(self.tempo_analise)

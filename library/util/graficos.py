@@ -11,17 +11,10 @@ def tco_simples(cenarios, tipo_grafico, path):
     rotulos = list()
 
     for key in cenarios:
-        if tipo_grafico == 'Radio':
-            capex_macro = cenarios[key].capex_radio_macro
-            capex_hetnet = cenarios[key].capex_radio_hetnet
-            opex_macro = cenarios[key].opex_radio_macro
-            opex_hetnet = cenarios[key].opex_radio_hetnet
-        else:
-            capex_macro = cenarios[key].capex_transporte_mw_macro
-            capex_hetnet = cenarios[key].capex_transporte_mw_hetnet
-            opex_macro = cenarios[key].opex_transporte_mw_macro
-            opex_hetnet = cenarios[key].opex_transporte_mw_hetnet
-
+        capex_macro = cenarios[key].capex_macro[tipo_grafico]
+        capex_hetnet = cenarios[key].capex_hetnet[tipo_grafico]
+        opex_macro = cenarios[key].opex_macro[tipo_grafico]
+        opex_hetnet = cenarios[key].opex_hetnet[tipo_grafico]
         tempo_analise = cenarios[key].tempo_analise
 
         capex_m = np.zeros(tempo_analise)
@@ -72,7 +65,7 @@ def tco_simples(cenarios, tipo_grafico, path):
         posicao.append(i * separacao)
 
     # Legendas e Largura das Barras
-    legenda = ['CAPEX Radio', 'OPEX Radio']
+    legenda = ['CAPEX '.format(tipo_grafico), 'OPEX {}'.format(tipo_grafico)]
 
     line_width = 0.5
 
@@ -111,16 +104,10 @@ def composicao_tco(cenarios, tipo_grafico, path):
         legenda = ['Infra.', 'Equip.', 'Inst.', 'Energ.', 'Manut.', 'Espec.', 'Falhas']
 
     for key in cenarios:
-        if tipo_grafico == 'Radio':
-            capex_macro = cenarios[key].capex_radio_macro
-            capex_hetnet = cenarios[key].capex_radio_hetnet
-            opex_macro = cenarios[key].opex_radio_macro
-            opex_hetnet = cenarios[key].opex_radio_hetnet
-        else:
-            capex_macro = cenarios[key].capex_transporte_mw_macro
-            capex_hetnet = cenarios[key].capex_transporte_mw_hetnet
-            opex_macro = cenarios[key].opex_transporte_mw_macro
-            opex_hetnet = cenarios[key].opex_transporte_mw_hetnet
+        capex_macro = cenarios[key].capex_macro[tipo_grafico]
+        capex_hetnet = cenarios[key].capex_hetnet[tipo_grafico]
+        opex_macro = cenarios[key].opex_macro[tipo_grafico]
+        opex_hetnet = cenarios[key].opex_hetnet[tipo_grafico]
 
         infraestrutura.append(capex_macro['infraestrutura'].sum())
         infraestrutura.append(capex_hetnet['infraestrutura'].sum())
@@ -215,16 +202,10 @@ def composicao_tco_porcentagem(cenarios, tipo_grafico, path):
     a, b = [plt.cm.Blues, plt.cm.Reds]
 
     for key in cenarios:
-        if tipo_grafico == 'Radio':
-            capex_macro = cenarios[key].capex_radio_macro
-            capex_hetnet = cenarios[key].capex_radio_hetnet
-            opex_macro = cenarios[key].opex_radio_macro
-            opex_hetnet = cenarios[key].opex_radio_hetnet
-        else:
-            capex_macro = cenarios[key].capex_transporte_mw_macro
-            capex_hetnet = cenarios[key].capex_transporte_mw_hetnet
-            opex_macro = cenarios[key].opex_transporte_mw_macro
-            opex_hetnet = cenarios[key].opex_transporte_mw_hetnet
+        capex_macro = cenarios[key].capex_macro[tipo_grafico]
+        capex_hetnet = cenarios[key].capex_hetnet[tipo_grafico]
+        opex_macro = cenarios[key].opex_macro[tipo_grafico]
+        opex_hetnet = cenarios[key].opex_hetnet[tipo_grafico]
 
         infraestrutura.append(capex_macro['infraestrutura'].sum())
         infraestrutura.append(capex_hetnet['infraestrutura'].sum())
@@ -322,22 +303,14 @@ def evolucao_tco(cenarios, tipo_grafico, tipo_rede_radio, path):
                 posicao = posicao_macro
                 cor_capex = a(0.6)
                 cor_opex = b(0.6)
-                if tipo_grafico == 'Radio':
-                    capex = cenarios[key].capex_radio_macro
-                    opex = cenarios[key].opex_radio_macro
-                else:
-                    capex = cenarios[key].capex_transporte_mw_macro
-                    opex = cenarios[key].opex_transporte_mw_macro
+                capex = cenarios[key].capex_macro[tipo_grafico]
+                opex = cenarios[key].opex_macro[tipo_grafico]
             else:
                 posicao = posicao_hetnet
                 cor_capex = a(0.3)
                 cor_opex = b(0.3)
-                if tipo_grafico == 'Radio':
-                    capex = cenarios[key].capex_radio_hetnet
-                    opex = cenarios[key].opex_radio_hetnet
-                else:
-                    capex = cenarios[key].capex_transporte_mw_hetnet
-                    opex = cenarios[key].opex_transporte_mw_hetnet
+                capex = cenarios[key].capex_hetnet[tipo_grafico]
+                opex = cenarios[key].opex_hetnet[tipo_grafico]
 
             legenda.append('CAPEX {}'.format(tipo))
             legenda.append('OPEX {}'.format(tipo))

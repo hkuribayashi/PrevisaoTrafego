@@ -1,18 +1,17 @@
 import copy
 
+from library.core.engine import Engine
 from library.entities.aglomerado import Aglomerado
 from library.entities.municipio import Municipio
 from library.entities.ponto import Ponto
 from library.hetnet.bs import BS
 from library.hetnet.tipo_bs import TipoBS
-from library.custos.tco import TCO
 
 # Criando um município a partir dos dados de Faro
-
 m1 = Municipio(1, 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 15, 18.5, 8320.0)
 
 # Aglomerado Nova Maracana Original
-a1 = Aglomerado(1, 978.0, 0.22, 0.0, 213.0, 49.0, 'Nova Maracana')
+a1 = Aglomerado(1, 978.0, 0.22, 0.0, 213.0, 49.0, 'Nova Maracana', m1)
 
 # Aglomerado Nova Maracana Alternativo (5G)
 a2 = copy.deepcopy(a1)
@@ -22,7 +21,7 @@ a2.cenario_original = a1
 a2.estrategia_atualizacao_bs = 'Acelerada'
 
 # Aglomerado Ubim Original
-a3 = Aglomerado(3, 217.0, 0.42, 0.0, 47.0, 21.0, 'Ubim')
+a3 = Aglomerado(3, 217.0, 0.42, 0.0, 47.0, 21.0, 'Ubim', m1)
 
 # Aglomerado Ubim Alternativo (5G)
 a4 = copy.deepcopy(a3)
@@ -32,7 +31,7 @@ a4.cenario_original = a3
 a4.estrategia_atualizacao_bs = 'Acelerada'
 
 # Aglomerado Sede Original
-a5 = Aglomerado(5, 5118.0, 1.81, 2.0, 1063.0, 174.0, 'Sede')
+a5 = Aglomerado(5, 5118.0, 1.81, 2.0, 1063.0, 174.0, 'Sede', m1)
 
 # Aglomerado Sede Alternativo Greenfield
 a6 = copy.deepcopy(a5)
@@ -90,5 +89,5 @@ m1.calcula_dimensionamento_rede_transporte()
 m1.calcula_dimensionamento_centraloffice()
 # m1.gera_graficos_municipio()
 
-tco = TCO(m1)
-tco.gera_graficos()
+engine = Engine(m1, '/Users/hugo/Desktop/')
+engine.get_graficos()

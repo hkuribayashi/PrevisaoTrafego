@@ -8,13 +8,10 @@ from library.hetnet.bs import BS
 from library.util.util import get_gompertz, get_ponto_aleatorio, busca_bs_nao_hub, get_distancia_manhattan, busca_bs_hub
 
 
-# noinspection PyUnresolvedReferences
 class Aglomerado:
 
     def __init__(self, id_, total_habitantes, area_aglomerado, total_agencias_bancarias, total_domicilios,
-                 total_cruzamentos, tipo_aglomerado,
-                 tipo_cenario='Original',
-                 cenario_original=-1,
+                 total_cruzamentos, tipo_aglomerado, municipio, tipo_cenario='Original', cenario_original=-1,
                  estrategia_atualizacao_bs='Tradicional'):
 
         self.id = id_
@@ -23,12 +20,12 @@ class Aglomerado:
         self.total_agencias_bancarias = total_agencias_bancarias
         self.total_domicilios = total_domicilios
         self.densidade_demografica = total_habitantes/area_aglomerado
-
         self.total_cruzamentos = total_cruzamentos
         self.tipo_aglomerado = tipo_aglomerado
         self.tipo_cenario = tipo_cenario
         self.cenario_original = cenario_original
         self.estrategia_atualizacao_bs = estrategia_atualizacao_bs
+        self.tempo_analise = municipio.tempo_analise
 
         self.total_servidores_publicos = 0.0
         self.total_servidores_publicos_saude = 0.0
@@ -36,97 +33,99 @@ class Aglomerado:
         self.total_alunos = 0.0
         self.total_docentes = 0.0
         self.total_veiculos = 0.0
-        self.tempo_analise = 0
         self.percentual_alunos_ead = 0.0
         self.percentual_pop_ativa = 0.0
         self.total_pop_ativa = 0.0
         self.total_pop_inativa = 0.0
-
         self.percentual_habitantes = 0.0
         self.demanda_trafego_por_area = 0.0
-        self.demanda_trafego = 0.0
         self.densidade_usuarios = 0.0
         self.demanda_trafego_terminais = 0.0
         self.demanda_usuarios = 0.0
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
         self.tempo_maturacao = 3.0
+
+        self.demanda_trafego = np.zeros(self.tempo_analise)
         self.lista_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
-        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro=list(), implantacao_hetnet=list())
+        self.capacidade_atendimento_rede_acesso = dict(implantacao_macro=np.zeros(self.tempo_analise),
+                                                       implantacao_hetnet=np.zeros(self.tempo_analise))
         self.quantidade_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
 
         # Equipamentos Fibra (PON)
-        self.qtd_fibra_instalada_macro_only = 0.0
-        self.qtd_modem_pon_macro_only = 0.0
-        self.qtd_fibra_instalada_hetnet = 0.0
-        self.qtd_modem_pon_hetnet = 0.0
+        self.qtd_fibra_instalada_macro_only = np.zeros(self.tempo_analise)
+        self.qtd_modem_pon_macro_only = np.zeros(self.tempo_analise)
+        self.qtd_fibra_instalada_hetnet = np.zeros(self.tempo_analise)
+        self.qtd_modem_pon_hetnet = np.zeros(self.tempo_analise)
 
         # Equipamentos MicroWave (MW)
-        self.qtd_antena_mw_pt_pt_macro_only = 0.0
-        self.qtd_sw_carrier_mw_macro_only = 0.0
-        self.qtd_antena_mw_pt_pt_hetnet = 0.0
-        self.qtd_sw_carrier_mw_hetnet = 0.0
+        self.qtd_antena_mw_macro = np.zeros(self.tempo_analise)
+        self.qtd_antena_mw_hetnet = np.zeros(self.tempo_analise)
 
-        # Despesas de CAPEX de Radio
-        self.capex_radio_macro = 0.0
-        self.capex_radio_hetnet = 0.0
+        self.capex_macro = {'Radio': dict(infraestrutura=np.zeros(self.tempo_analise),
+                                          equipamentos=np.zeros(self.tempo_analise),
+                                          instalacao=np.zeros(self.tempo_analise)),
+                            'Transporte': dict(infraestrutura=np.zeros(self.tempo_analise),
+                                                equipamentos=np.zeros(self.tempo_analise),
+                                                instalacao=np.zeros(self.tempo_analise))}
+        self.capex_hetnet = {'Radio': dict(infraestrutura=np.zeros(self.tempo_analise),
+                                           equipamentos=np.zeros(self.tempo_analise),
+                                           instalacao=np.zeros(self.tempo_analise)),
+                             'Transporte': dict(infraestrutura=np.zeros(self.tempo_analise),
+                                                equipamentos=np.zeros(self.tempo_analise),
+                                                instalacao=np.zeros(self.tempo_analise))}
+        self.opex_macro = {'Radio': dict(energia=np.zeros(self.tempo_analise),
+                                         manutencao=np.zeros(self.tempo_analise),
+                                         aluguel=np.zeros(self.tempo_analise),
+                                         falhas=np.zeros(self.tempo_analise)),
+                           'Transporte': dict(energia=np.zeros(self.tempo_analise),
+                                              manutencao=np.zeros(self.tempo_analise),
+                                              aluguel=np.zeros(self.tempo_analise),
+                                              falhas=np.zeros(self.tempo_analise))}
 
-        # Despesas de OPEX de Radio
-        self.opex_radio_macro = 0.0
-        self.opex_radio_hetnet = 0.0
-        
-        # Despesas de CAPEX de Transporte MW+Macro
-        self.capex_transporte_mw_macro = 0.0
-        self.capex_transporte_mw_hetnet = 0.0
-
-        self.opex_transporte_mw_macro = 0.0
-        self.opex_transporte_mw_hetnet = 0.0
+        self.opex_hetnet = {'Radio': dict(energia=np.zeros(self.tempo_analise),
+                                          manutencao=np.zeros(self.tempo_analise),
+                                          aluguel=np.zeros(self.tempo_analise),
+                                          falhas=np.zeros(self.tempo_analise)),
+                            'Transporte': dict(energia=np.zeros(self.tempo_analise),
+                                               manutencao=np.zeros(self.tempo_analise),
+                                               aluguel=np.zeros(self.tempo_analise),
+                                               falhas=np.zeros(self.tempo_analise))}
 
         if self.tipo_cenario == 'Alternativo' and self.cenario_original == -1:
             raise RuntimeError('Erro: Deve ser informado o aglomerado original')
 
-    def adicionar_BS(self, BS):
-        self.lista_bs['implantacao_macro'].append(BS)
-        self.lista_bs['implantacao_hetnet'].append(cp.deepcopy(BS))
+    def adicionar_BS(self, bs):
+        self.lista_bs['implantacao_macro'].append(bs)
+        self.lista_bs['implantacao_hetnet'].append(cp.deepcopy(bs))
 
     def calcula_demanda_aplicacoes(self):
         demanda_aplicacoes = np.zeros(self.tempo_analise)
         print('Dados de Aplicações de IoT/M2M para o Aglomerado {} ({}+{})'.format(self.id, self.tipo_cenario, self.estrategia_atualizacao_bs))
         for app in Aplicacao:
-            qtd_terminais = 0.0
             if app.id == 1:
                 qtd_terminais = self.total_habitantes
+            elif app.id == 2:
+                qtd_terminais = np.ceil(self.total_habitantes / 1000.0)
+            elif app.id == 3:
+                qtd_terminais = self.total_servidores_publicos_saude
+            elif app.id == 4:
+                qtd_terminais = np.ceil(self.total_alunos * self.percentual_alunos_ead)
+            elif app.id == 5:
+                qtd_terminais = np.ceil(self.total_alunos + self.total_docentes)
+            elif app.id == 6:
+                qtd_terminais = self.total_cruzamentos
+            elif app.id == 7:
+                qtd_terminais = np.ceil(self.total_servidores_publicos)
+            elif app.id == 8:
+                qtd_terminais = self.total_agencias_bancarias * 5
+            elif app.id == 9:
+                qtd_terminais = np.ceil(self.total_pop_ativa - self.total_servidores_publicos - self.total_servidores_publicos_saude)
+            elif app.id == 10 or app.id == 11:
+                qtd_terminais = self.total_domicilios
             else:
-                if app.id == 2:
-                    qtd_terminais = np.ceil(self.total_habitantes / 1000.0)
-                else:
-                    if app.id == 3:
-                        qtd_terminais = self.total_servidores_publicos_saude
-                    else:
-                        if app.id == 4:
-                            qtd_terminais = np.ceil(self.total_alunos * self.percentual_alunos_ead)
-                        else:
-                            if app.id == 5:
-                                qtd_terminais = np.ceil(self.total_alunos + self.total_docentes)
-                            else:
-                                if app.id == 6:
-                                    qtd_terminais = self.total_cruzamentos
-                                else:
-                                    if app.id == 7:
-                                        qtd_terminais = np.ceil(self.total_servidores_publicos)
-                                    else:
-                                        if app.id == 8:
-                                            qtd_terminais = self.total_agencias_bancarias * 5
-                                        else:
-                                            if app.id == 9:
-                                                qtd_terminais = np.ceil(self.total_pop_ativa -
-                                                                        self.total_servidores_publicos -
-                                                                        self.total_servidores_publicos_saude)
-                                            else:
-                                                if app.id == 10 or app.id == 11:
-                                                    qtd_terminais = self.total_domicilios
-                                                else:
-                                                    qtd_terminais = np.ceil(self.total_veiculos)
+                qtd_terminais = np.ceil(self.total_veiculos)
+
             c = get_gompertz(app.mu, app.beta, app.gamma, self.tempo_analise)
             c = (qtd_terminais / self.area_aglomerado) * app.alpha * c * app.vazao
             print('Aplicação IoT: {} (alpha={}, beta={}, mu={}, gamma={}, terminais={}, vazao={})'.format(app.nome,
@@ -501,9 +500,9 @@ class Aglomerado:
         #     self._calcula_dimensionamento_rede_transporte_fibra(self.lista_bs['implantacao_hetnet'])
 
         print('Estratégia Macro:')
-        self.qtd_antena_mw_pt_pt_macro_only, self.qtd_sw_carrier_mw_macro_only = \
+        self.qtd_antena_mw_macro, self.qtd_sw_carrier_mw_macro_only = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_macro'])
 
         print('Estratégia Hetnet:')
-        self.qtd_antena_mw_pt_pt_hetnet, self.qtd_sw_carrier_mw_hetnet = \
+        self.qtd_antena_mw_hetnet, self.qtd_sw_carrier_mw_hetnet = \
             self._calcula_dimensionamento_rede_transporte_microondas(self.lista_bs['implantacao_hetnet'])

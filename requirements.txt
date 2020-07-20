@@ -3,3 +3,4 @@
 #
 numpy~=1.19.0
 matplotlib~=3.2.2
+six~=1.14.0

@@ -27,11 +27,11 @@ class CapexRadio:
                 ag.lista_bs['implantacao_macro'])
             infraestrutura = self.__calcula_capex_radio_infraestrutura(ag.lista_bs['implantacao_macro'])
 
-            ag.capex_radio_macro['infraestrutura'] += infraestrutura
-            ag.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
-            ag.capex_radio_macro['equipamentos'] += equipamentos_novos
-            ag.capex_radio_macro['instalacao'] += instalacao_atualizacao
-            ag.capex_radio_macro['instalacao'] += instalacao_novos
+            ag.capex_macro['infraestrutura'] += infraestrutura
+            ag.capex_macro['equipamentos'] += equipamentos_atualizacao
+            ag.capex_macro['equipamentos'] += equipamentos_novos
+            ag.capex_macro['instalacao'] += instalacao_atualizacao
+            ag.capex_macro['instalacao'] += instalacao_novos
 
             self.capex_radio_macro['infraestrutura'] += infraestrutura
             self.capex_radio_macro['equipamentos'] += equipamentos_atualizacao
@@ -58,11 +58,11 @@ class CapexRadio:
                 ag.lista_bs['implantacao_hetnet'])
             infraestrutura = self.__calcula_capex_radio_infraestrutura(ag.lista_bs['implantacao_hetnet'])
 
-            ag.capex_radio_hetnet['infraestrutura'] += infraestrutura
-            ag.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
-            ag.capex_radio_hetnet['equipamentos'] += equipamentos_novos
-            ag.capex_radio_hetnet['instalacao'] += instalacao_atualizacao
-            ag.capex_radio_hetnet['instalacao'] += instalacao_novos
+            ag.capex_hetnet['infraestrutura'] += infraestrutura
+            ag.capex_hetnet['equipamentos'] += equipamentos_atualizacao
+            ag.capex_hetnet['equipamentos'] += equipamentos_novos
+            ag.capex_hetnet['instalacao'] += instalacao_atualizacao
+            ag.capex_hetnet['instalacao'] += instalacao_novos
 
             self.capex_radio_hetnet['infraestrutura'] += infraestrutura
             self.capex_radio_hetnet['equipamentos'] += equipamentos_atualizacao
@@ -270,10 +270,10 @@ class OpexRadio:
             manutencao = self.__calcula_opex_radio_manutencao(ag.lista_bs['implantacao_macro'])
             falhas = self.__calcula_opex_radio_falhas(ag.lista_bs['implantacao_macro'])
 
-            ag.opex_radio_macro['energia'] += energia
-            ag.opex_radio_macro['manutencao'] += manutencao
-            ag.opex_radio_macro['aluguel'] += aluguel
-            ag.opex_radio_macro['falhas'] += falhas
+            ag.opex_macro['energia'] += energia
+            ag.opex_macro['manutencao'] += manutencao
+            ag.opex_macro['aluguel'] += aluguel
+            ag.opex_macro['falhas'] += falhas
 
             self.opex_radio_macro['energia'] += energia
             self.opex_radio_macro['manutencao'] += manutencao
@@ -296,10 +296,10 @@ class OpexRadio:
             manutencao = self.__calcula_opex_radio_manutencao(ag.lista_bs['implantacao_hetnet'])
             falhas = self.__calcula_opex_radio_falhas(ag.lista_bs['implantacao_hetnet'])
 
-            ag.opex_radio_hetnet['energia'] += energia
-            ag.opex_radio_hetnet['manutencao'] += manutencao
-            ag.opex_radio_hetnet['aluguel'] += aluguel
-            ag.opex_radio_hetnet['falhas'] += falhas
+            ag.opex_hetnet['energia'] += energia
+            ag.opex_hetnet['manutencao'] += manutencao
+            ag.opex_hetnet['aluguel'] += aluguel
+            ag.opex_hetnet['falhas'] += falhas
 
             self.opex_radio_hetnet['energia'] += energia
             self.opex_radio_hetnet['manutencao'] += manutencao
