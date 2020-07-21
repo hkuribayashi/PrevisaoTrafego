@@ -65,7 +65,7 @@ def tco_simples(cenarios, tipo_grafico, path):
         posicao.append(i * separacao)
 
     # Legendas e Largura das Barras
-    legenda = ['CAPEX '.format(tipo_grafico), 'OPEX {}'.format(tipo_grafico)]
+    legenda = ['CAPEX', 'OPEX']
 
     line_width = 0.5
 
