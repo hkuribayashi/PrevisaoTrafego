@@ -8,7 +8,8 @@ from library.util import util
 
 class TcoRadio(TCO):
 
-    def __init__(self, municipio, componente):
+    def __init__(self, municipio):
+        componente = 'Radio'
         TCO.__init__(self, municipio, componente)
 
     def get_capex_atualizacoes(self, lista_bs):

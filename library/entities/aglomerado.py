@@ -45,6 +45,7 @@ class Aglomerado:
         self.demanda_aplicacoes = 0.0
         self.user_fraction = 0.0
         self.tempo_maturacao = 3.0
+        self.total_terminais = np.zeros(self.tempo_analise)
 
         self.demanda_trafego = np.zeros(self.tempo_analise)
         self.lista_bs = dict(implantacao_macro=list(), implantacao_hetnet=list())
@@ -127,6 +128,7 @@ class Aglomerado:
                 qtd_terminais = np.ceil(self.total_veiculos)
 
             c = get_gompertz(app.mu, app.beta, app.gamma, self.tempo_analise)
+            self.total_terminais += np.ceil(c * qtd_terminais)
             c = (qtd_terminais / self.area_aglomerado) * app.alpha * c * app.vazao
             print('Aplicação IoT: {} (alpha={}, beta={}, mu={}, gamma={}, terminais={}, vazao={})'.format(app.nome,
                                                                                                           app.alpha,
@@ -193,8 +195,9 @@ class Aglomerado:
         self.calcula_densidade_usuarios()
         self.calcula_trafego_terminal()
         self.calcula_demada_usuarios()
-        self.demanda_trafego_por_area = np.add(self.demanda_aplicacoes,
-                                               self.demanda_usuarios)  # faco um chuveirinho somando
+
+        # faco um chuveirinho somando
+        self.demanda_trafego_por_area = np.add(self.demanda_aplicacoes, self.demanda_usuarios)
 
     def __capacidade_atendimento_rede_acesso(self):
         capacidade_atendimento_macro = 0.0

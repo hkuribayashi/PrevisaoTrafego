@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from library.config.param import PARAM
 
-def tco_simples(cenarios, tipo_grafico, path):
+
+def tco_simples(cenarios, tipo_grafico):
 
     global nome_aglomerado, id_aglomerado
 
@@ -80,10 +82,10 @@ def tco_simples(cenarios, tipo_grafico, path):
     plt.ylabel('TCO (Unidades Monetárias $)')
     plt.title('Comparação TCO {}: Aglomerado {}'.format(tipo_grafico, nome_aglomerado))
 
-    plt.savefig('{}TCO-Simples-{}-{}.eps'.format(path, tipo_grafico, id_aglomerado), dpi=600, bbox_inches='tight')
+    plt.savefig('{}TCO-Simples-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
 
 
-def composicao_tco(cenarios, tipo_grafico, path):
+def composicao_tco(cenarios, tipo_grafico):
 
     global nome_aglomerado, id_aglomerado
 
@@ -182,10 +184,10 @@ def composicao_tco(cenarios, tipo_grafico, path):
     plt.title('Composição TCO {} Aglomerado {}'.format(tipo_grafico, nome_aglomerado))
     plt.ylabel('Composição do TCO (Unidades Monetárias $)')
 
-    plt.savefig('{}TCO-{}-{}.eps'.format(path, tipo_grafico, id_aglomerado), dpi=600, bbox_inches='tight')
+    plt.savefig('{}TCO-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
 
 
-def composicao_tco_porcentagem(cenarios, tipo_grafico, path):
+def composicao_tco_porcentagem(cenarios, tipo_grafico):
 
     global nome_aglomerado, id_aglomerado
 
@@ -275,10 +277,10 @@ def composicao_tco_porcentagem(cenarios, tipo_grafico, path):
 
     plt.legend(mypie2, subgroup_names, loc='center left', bbox_to_anchor=(1, 0, 0.5, 1))
 
-    plt.savefig('{}TCO-{}-Porcentagem-{}.eps'.format(path, tipo_grafico, id_aglomerado), dpi=600, bbox_inches='tight')
+    plt.savefig('{}TCO-{}-Porcentagem-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
 
 
-def evolucao_tco(cenarios, tipo_grafico, tipo_rede_radio, path):
+def evolucao_tco(cenarios, tipo_grafico, tipo_rede_radio):
 
     global id_aglomerado
 
@@ -340,4 +342,121 @@ def evolucao_tco(cenarios, tipo_grafico, tipo_rede_radio, path):
         plt.xlabel('Unidade de Tempo (t)')
         plt.title('Evolução do TCO - {}: Aglomerado C{}'.format(tipo_grafico, id_aglomerado))
 
-        plt.savefig('{}TCO-{}-Evolucao-{}.eps'.format(path, tipo_grafico, id_aglomerado), dpi=600, bbox_inches='tight')
+        plt.savefig('{}TCO-{}-Evolucao-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+
+
+def fluxo_caixa_municipio(cenarios):
+
+    # Legendas
+    names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
+    legenda = list()
+
+    posicao_macro = np.arange(0, 90, step=6)
+    posicao_hetnet = posicao_macro + 2.3
+    posicao_legenda = (posicao_macro + posicao_hetnet)/2
+
+    bar_width = 2.0
+    line_width = 0.6
+
+    # Cores dos Gráficos
+    a, b = [plt.cm.Blues, plt.cm.Reds]
+
+    plt.figure(figsize=(8.0, 5.5))
+
+    for key in cenarios:
+
+        if key == 'Macro':
+            posicao = posicao_macro
+            cor = a(0.6)
+        else:
+            posicao = posicao_hetnet
+            cor = b(0.6)
+
+        legenda.append('CF {}'.format(key))
+
+        plt.bar(posicao, cenarios[key], color=cor, width=bar_width, zorder=3, linewidth=line_width, edgecolor='black')
+
+    # Custom X axis
+    plt.xticks(posicao_legenda, names)
+    plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+    plt.legend(legenda, loc='best')
+    plt.ylabel('TCO (Unidades Monetárias $)')
+    plt.xlabel('Unidade de Tempo (t)')
+    plt.title('Fluxo de Caixa Municipio')
+
+    plt.savefig('{}CF.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+
+
+def npv_municipio(cenarios):
+
+    # Legendas
+    posicao = [0.0, 2.5, 5.0, 7.5]
+    names = list()
+    legenda = list()
+    valores = list()
+
+    bar_width = 1.5
+    line_width = 0.6
+
+    # Cores dos Gráficos
+    a = plt.cm.Blues
+    cor = a(0.6)
+
+    plt.figure()
+
+    for key in cenarios:
+        legenda.append('NPV {}'.format(key))
+        valores.append(cenarios[key])
+        names.append(key)
+
+    # Temporario
+    valores.append(0.0)
+    valores.append(0.0)
+
+    plt.bar(posicao, valores, width=bar_width, zorder=3, linewidth=line_width, edgecolor='black')
+
+    # Custom X axis
+    plt.xticks(posicao, names)
+    plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+    plt.legend(legenda, loc='best')
+    plt.ylabel('NPV (Unidades Monetárias $)')
+    plt.title('NPV Municipio')
+
+    # plt.show()
+    plt.savefig('{}NPV.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+
+
+def tco_municipio(cenarios):
+
+    # Legendas
+    posicao = [0.0, 2.5, 5.0, 7.5]
+    names = list()
+    valores = list()
+
+    bar_width = 1.5
+    line_width = 0.6
+
+    # Cores dos Gráficos
+    a = plt.cm.Blues
+    cor = a(0.6)
+
+    plt.figure()
+
+    for key in cenarios:
+        valores.append(cenarios[key].sum())
+        names.append(key)
+
+    # Temporario
+    valores.append(0.0)
+    valores.append(0.0)
+
+    plt.bar(posicao, valores, width=bar_width, zorder=3, linewidth=line_width, edgecolor='black')
+
+    # Custom X axis
+    plt.xticks(posicao, names)
+    plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+    plt.ylabel('TCO (Unidades Monetárias $)')
+    plt.title('TCO Municipio')
+
+    # plt.show()
+    plt.savefig('{}TCO.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')

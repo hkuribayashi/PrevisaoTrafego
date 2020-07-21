@@ -4,11 +4,11 @@ from enum import Enum
 class OPEX(Enum):
 
     # Despesas de Energia
-    CONSUMO = ('Tarifa de Consumo de kWh', '$/kWh', 0.00000156)
-    VENDA = ('Tarifa de Consumo de kWh', '$/kWh', 0.000001157)
+    CONSUMO = ('Tarifa de Consumo de kWh', '$/kWh', 0.000001563230066)
+    VENDA = ('Tarifa de Consumo de kWh', '$/kWh', 0.000001157948197)
 
     # Reajuste anual de Preços
-    TAXA_REAJUSTE = ('Taxa de reajuste de despesas', '%/ano', 0.03)
+    TAXA_REAJUSTE = ('Taxa de reajuste de despesas', '%/ano', 0.07)
 
     # Despesas de Aluguel
     ALUGUEL_OUTDOOR = ('Valor de aluguel anual por m2 outdoor', '$/m2', 0.00003545454545)
@@ -32,7 +32,7 @@ class OPEX(Enum):
 
     # Despesas de Manutenção relacionada a RH
     SALARIO_TECNICO = ('Salário do Técnico de Manutenção', '$/hora', 0.0004727)
-    QTD_TECNICOS = ('Qtd de Técnicos por Time', 'técnicos/time', 1.0)
+    QTD_TECNICOS = ('Qtd de Técnicos por Time', 'técnicos/time', 2.0)
     QTD_TIMES = ('Quantidade de times', 'times/manutenção', 1.0)
     TAXA_CORRECAO_SALARARIO = ('Taxa de Correção de Salário do Técnico de Manutenção', '%/ano', 0.07)
 

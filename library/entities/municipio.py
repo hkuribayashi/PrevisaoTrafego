@@ -24,6 +24,7 @@ class Municipio():
         self.tempo_analise = tempo_analise
         self.tempo_viagem = tempo_viagem
         self.tempo_medio_disponibilidade = tempo_medio_disponibilidade
+        self.tipos_rede_radio = ['Macro', 'Hetnet']
 
         self.aglomerados = list()
         self.fibra_otica_implantada = \
@@ -115,7 +116,7 @@ class Municipio():
             if ano == 0:
                 servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano/800)
             else:
-                servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano / 800) \
+                servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano/800) \
                                                                  - sum(servidores_implantados_por_ano_datacenter[:ano])
         print('Quantidade de Servidores por Ano')
         print(servidores_implantados_por_ano_datacenter)

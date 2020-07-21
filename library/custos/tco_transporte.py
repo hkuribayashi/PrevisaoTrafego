@@ -8,7 +8,8 @@ from library.util import util
 
 class TcoTransporte(TCO):
 
-    def __init__(self, municipio, componente):
+    def __init__(self, municipio):
+        componente = 'Transporte'
         TCO.__init__(self, municipio, componente)
 
     def get_capex_implantacoes(self, qtd_antena_mw, qtd_sw_carrier_mw):
@@ -105,8 +106,8 @@ class TcoTransporte(TCO):
                 qtd_sw = qtd_sw_carrier_mw[ano]
                 for t in range(ano, self.municipio.tempo_analise):
                     # Faz o cálculo do volume de $ por kWh ao ano
-                    # Assumindo Potência 450W (Antena MW Small) e 450W (SW Carrier)
-                    energia_mw[t] += (550.0 / 1000.0) * qtd_antena * tarifa_energia_ajustada[t] * 365.0 * 24.0
+                    # Assumindo Potência 200W (Antena MW Small) e 400W (SW Carrier)
+                    energia_mw[t] += (200.0 / 1000.0) * qtd_antena * tarifa_energia_ajustada[t] * 365.0 * 24.0
                     energia_mw[t] += (400.0 / 1000.0) * qtd_sw * tarifa_energia_ajustada[t] * 365.0 * 24.0
                 energia += energia_mw
 
