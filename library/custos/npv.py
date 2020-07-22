@@ -13,52 +13,88 @@ class NPV:
         self.cf = dict(Macro=np.zeros(self.municipio.tempo_analise), Hetnet=np.zeros(self.municipio.tempo_analise))
         self.npv = dict(Macro=np.zeros(self.municipio.tempo_analise), Hetnet=np.zeros(self.municipio.tempo_analise))
 
-        self.payback = dict(macro=0.0, hetnet=0.0)
+        self.payback = dict(Macro=0.0, Hetnet=0.0)
 
     def get_cf(self):
         for ag in self.municipio.aglomerados:
-            if ag.tipo_cenario == 'Original':
+            # Calcula o quantitativo de Termianais de Dados
+            self.assinaturas_moveis += ag.total_terminais
+            print()
 
-                # Calcula o quantitativo de Termianais de Dados
-                self.assinaturas_moveis += ag.total_terminais
+        arreacadacao = self.assinaturas_moveis * CF.TAXA_SUBSCRICAO.valor * 12.0
+        print('Valor de Arrecadação: ')
+        print(arreacadacao)
+        print(arreacadacao.sum())
 
-                for tipo in self.municipio.tipos_rede_radio:
-                    capex = np.zeros(self.municipio.tempo_analise)
-                    opex = np.zeros(self.municipio.tempo_analise)
+        capex = np.zeros(self.municipio.tempo_analise)
+        opex = np.zeros(self.municipio.tempo_analise)
 
-                    # Calcula o valor arrecadado com as assinaturas ao longo de 12 meses por ano
-                    self.cf[tipo] += self.assinaturas_moveis * CF.TAXA_SUBSCRICAO.valor * 12.0
+        for ag in self.municipio.aglomerados:
 
-                    if tipo == 'Macro':
-                        componente_capex = ag.capex_macro
-                        componente_opex = ag.opex_macro
-                    else:
-                        componente_capex = ag.capex_hetnet
-                        componente_opex = ag.opex_hetnet
+            # Recupera CAPEX e OPEX do Aglomerado Macro
+            capex += ag.capex_macro['Radio']['infraestrutura']
+            capex += ag.capex_macro['Radio']['equipamentos']
+            capex += ag.capex_macro['Radio']['instalacao']
+            capex += ag.capex_macro['Transporte']['infraestrutura']
+            capex += ag.capex_macro['Transporte']['equipamentos']
+            capex += ag.capex_macro['Transporte']['instalacao']
 
-                    # Recupera CAPEX e OPEX do Aglomerado Macro
-                    capex += componente_capex['Radio']['infraestrutura']
-                    capex += componente_capex['Radio']['equipamentos']
-                    capex += componente_capex['Radio']['instalacao']
+            opex += ag.opex_macro['Radio']['energia']
+            opex += ag.opex_macro['Radio']['manutencao']
+            opex += ag.opex_macro['Radio']['aluguel']
+            opex += ag.opex_macro['Radio']['falhas']
+            opex += ag.opex_macro['Transporte']['energia']
+            opex += ag.opex_macro['Transporte']['manutencao']
+            opex += ag.opex_macro['Transporte']['aluguel']
+            opex += ag.opex_macro['Transporte']['falhas']
 
-                    capex += componente_capex['Transporte']['infraestrutura']
-                    capex += componente_capex['Transporte']['equipamentos']
-                    capex += componente_capex['Transporte']['instalacao']
+        self.cf['Macro'] = arreacadacao - (capex + opex)
+        self.tco['Macro'] += (capex + opex)
 
-                    opex += componente_opex['Radio']['energia']
-                    opex += componente_opex['Radio']['manutencao']
-                    opex += componente_opex['Radio']['aluguel']
-                    opex += componente_opex['Radio']['falhas']
+        capex = np.zeros(self.municipio.tempo_analise)
+        opex = np.zeros(self.municipio.tempo_analise)
 
-                    opex += componente_opex['Transporte']['energia']
-                    opex += componente_opex['Transporte']['manutencao']
-                    opex += componente_opex['Transporte']['aluguel']
-                    opex += componente_opex['Transporte']['falhas']
+        for ag in self.municipio.aglomerados:
 
-                    self.cf[tipo] = self.cf[tipo] - (capex + opex)
-                    self.tco[tipo] += (capex + opex)
+            # Recupera CAPEX e OPEX do Aglomerado Hetnet
+            capex += ag.capex_hetnet['Radio']['infraestrutura']
+            capex += ag.capex_hetnet['Radio']['equipamentos']
+            capex += ag.capex_hetnet['Radio']['instalacao']
+            capex += ag.capex_hetnet['Transporte']['infraestrutura']
+            capex += ag.capex_hetnet['Transporte']['equipamentos']
+            capex += ag.capex_hetnet['Transporte']['instalacao']
+
+            opex += ag.opex_hetnet['Radio']['energia']
+            opex += ag.opex_hetnet['Radio']['manutencao']
+            opex += ag.opex_hetnet['Radio']['aluguel']
+            opex += ag.opex_hetnet['Radio']['falhas']
+            opex += ag.opex_hetnet['Transporte']['energia']
+            opex += ag.opex_hetnet['Transporte']['aluguel']
+            opex += ag.opex_hetnet['Transporte']['falhas']
+
+        self.cf['Hetnet'] = arreacadacao - (capex + opex)
+        self.tco['Hetnet'] += (capex + opex)
+
+        print('TCO:')
+        print('Macro:')
+        print(self.tco['Macro'])
+        print(self.tco['Macro'].sum())
+        print('CF:')
+        print('Macro:')
+        print(self.cf['Macro'])
+
+        print('TCO:')
+        print('Hetnet:')
+        print(self.tco['Hetnet'])
+        print(self.tco['Hetnet'].sum())
+        print('CF:')
+        print('Hetnet:')
+        print(self.cf['Hetnet'])
+
+
 
     def get_npv(self):
+        print('NPV')
         for tipo in self.municipio.tipos_rede_radio:
             npv = np.zeros(self.municipio.tempo_analise)
             for ano, cf_ano in enumerate(self.cf[tipo]):
@@ -70,3 +106,7 @@ class NPV:
                     self.payback[tipo] = ano
                     break
             self.npv[tipo] = npv.sum()
+
+            print('Implantação {}:'.format(tipo))
+            print(self.npv[tipo])
+            print()

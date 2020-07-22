@@ -39,8 +39,9 @@ class Municipio():
             dict(implantacao_macro=np.zeros(tempo_analise), implantacao_hetnet=np.zeros(tempo_analise))
         self.sw_agregacao = np.zeros(tempo_analise)
         self.antenas_pt_pt = np.zeros(tempo_analise)
+
         self.co = CentralOffice()
-        mpl.rcParams.update({'figure.max_open_warning': 0})
+
 
     def adicionar_aglomerado(self, novo_aglomerado):
         self.aglomerados.append(novo_aglomerado)
@@ -64,8 +65,13 @@ class Municipio():
 
     def calcula_demanda_trafego(self):
         self.__ajustar_aglomerados()
+        temp = np.zeros(self.tempo_analise)
         for ag in self.aglomerados:
             ag.calcula_demanda_trafego()
+            temp += ag.total_terminais
+        print('Total de Terminais:')
+        print(temp)
+        print()
 
     def calcula_dimensionamento_rede_acesso(self):
         for ag in self.aglomerados:

@@ -61,14 +61,13 @@ def atualizacao_linear(preco_inicial, taxa, periodo):
     return preco_atualizado
 
 
-def get_cenarios_alternativos(aglomerado_original, lista_aglomerados):
-    cenarios = dict()
-    cenarios['Original'] = aglomerado_original
-    for outros_ag in lista_aglomerados:
-        if outros_ag.tipo_cenario == 'Alternativo' and outros_ag.cenario_original.id == aglomerado_original.id:
-            cenarios['Alternativo' + str(outros_ag.id)] = outros_ag
+def get_cenarios_alternativos(municipios):
+    chave_primeiro = list(municipios)[0]
+    total_aglomerados = len(municipios[chave_primeiro].aglomerados)
+    cenarios = list()
+    for i in range(total_aglomerados):
+        cenarios.append(dict())
+    for i in range(total_aglomerados):
+        for key in municipios:
+            cenarios[i][key] = municipios[key].aglomerados[i]
     return cenarios
-
-
-def func(pct, val):
-    return '{:.1f}%\n({:d} kg)'.format(pct, 1)
