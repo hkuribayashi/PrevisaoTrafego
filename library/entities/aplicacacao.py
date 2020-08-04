@@ -16,7 +16,7 @@ class Aplicacao(Enum):
     E_FINANCE_8 = (8, 'Caixas Eletrônicos', 2.0, 1.0, 5.0, 0.55, 0.16)
     E_FINANCE_9 = (9, 'Aplicações Financeiras', 2.0, 1.0, 5.0, 0.55, 0.16)
 
-    IOT_10 = (10, 'Smart water measurement', 0.1, 10.0, 15, 0.55, 1.0)
+    IOT_10 = (10, 'Smart water measurement', 0.1, 1.0, 15, 0.55, 1.0)
     IOT_11 = (11, 'Smart electricity measurement', 0.1, 1.0, 15.0, 0.55, 1.0)
     IOT_12 = (12, 'GPS Tracking', 0.1, 1.0, 5.0, 0.45, 1.0)
 
