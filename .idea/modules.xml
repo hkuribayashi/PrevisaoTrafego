@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/PrevisaoTrafego.iml" filepath="$PROJECT_DIR$/.idea/PrevisaoTrafego.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../PyCRE/.idea/PyCRE.iml" filepath="$PROJECT_DIR$/../PyCRE/.idea/PyCRE.iml" />
     </modules>
   </component>
 </project>

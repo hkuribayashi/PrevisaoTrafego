@@ -80,6 +80,7 @@ def tco_simples(cenarios, tipo_grafico):
     plt.ylabel('{} TCO - Monetary Units ($)'.format(label))
 
     plt.savefig('{}TCO-{}-Simples-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
 
 
 def composicao_tco(cenarios, tipo_grafico):
@@ -177,6 +178,7 @@ def composicao_tco(cenarios, tipo_grafico):
     plt.ylabel('{} TCO - Monetary Units ($)'.format(label))
 
     plt.savefig('{}TCO-{}-Composicao-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
 
 
 def composicao_tco_porcentagem(cenarios, tipo_grafico):
@@ -270,6 +272,7 @@ def composicao_tco_porcentagem(cenarios, tipo_grafico):
     plt.legend(mypie2, subgroup_names, loc='center left', bbox_to_anchor=(1, 0, 0.5, 1))
 
     plt.savefig('{}TCO-{}-Porcentagem-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
 
 
 def evolucao_tco(cenarios, tipo_grafico):
@@ -343,6 +346,7 @@ def evolucao_tco(cenarios, tipo_grafico):
         plt.xlabel('Units of Time (t)')
 
         plt.savefig('{}TCO-Evolucao-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+        plt.close()
 
 
 def fluxo_caixa_municipio(municipios):
@@ -385,6 +389,7 @@ def fluxo_caixa_municipio(municipios):
         plt.xlabel('Units od Time (t)')
 
         plt.savefig('{}CF-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, m), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+        plt.close()
 
 
 def npv_municipio(municipios):
@@ -427,6 +432,7 @@ def npv_municipio(municipios):
     plt.ylim(0, 90.0)
 
     plt.savefig('{}NPV.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
 
 
 def tco_municipio(municipios):
@@ -468,4 +474,4 @@ def tco_municipio(municipios):
     plt.ylabel('TCO (Unidades Monetárias $)')
 
     plt.savefig('{}TCO.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
-
+    plt.close()
