@@ -12,12 +12,12 @@ lista_municipios = dict()
 
 ######################
 
-# Brownfield + Implantação 5G Lenta: BF+5GL
+# Brownfield + Implantação 5G Lenta: BF+5GS
 
 ######################
 
 # Criando um município a partir dos dados de Faro
-m1 = Municipio(1, 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 15, 18.5, 8320.0)
+m1 = Municipio(1, 'Faro', 3272.0, 0.243, 164.0, 0.56, 489.0, 234.0, 134.0, 10, 18.5, 8320.0)
 m2 = copy.deepcopy(m1)
 m3 = copy.deepcopy(m1)
 m4 = copy.deepcopy(m1)
@@ -52,11 +52,11 @@ m1.adicionar_aglomerado(a1)
 m1.adicionar_aglomerado(a2)
 m1.adicionar_aglomerado(a3)
 
-lista_municipios['BF+5GL'] = m1
+lista_municipios['BF+5GS'] = m1
 
 ##################################
 
-# Greenfield + Implantação 5G Lenta: GF+5GL
+# Greenfield + Implantação 5G Lenta: GF+5GS
 
 ##################################
 
@@ -79,11 +79,11 @@ m2.adicionar_aglomerado(a4)
 m2.adicionar_aglomerado(a5)
 m2.adicionar_aglomerado(a6)
 
-lista_municipios['GF+5GL'] = m2
+lista_municipios['GF+5GS'] = m2
 
 ##################################
 
-# Brownfield + Implantação 5G Rápida: BF+5GR
+# Brownfield + Implantação 5G Rápida: BF+5GF
 
 ##################################
 
@@ -113,11 +113,11 @@ m3.adicionar_aglomerado(a7)
 m3.adicionar_aglomerado(a8)
 m3.adicionar_aglomerado(a9)
 
-lista_municipios['BF+5GR'] = m3
+lista_municipios['BF+5GF'] = m3
 
 ##################################
 
-# Grenfield + Implantação 5G Rápida: GF+5GR
+# Grenfield + Implantação 5G Rápida: GF+5GF
 
 ##################################
 
@@ -143,7 +143,7 @@ m4.adicionar_aglomerado(a10)
 m4.adicionar_aglomerado(a11)
 m4.adicionar_aglomerado(a12)
 
-lista_municipios['GF+5GR'] = m4
+lista_municipios['GF+5GF'] = m4
 
 engine = Engine(lista_municipios)
 engine.run()

@@ -3,7 +3,11 @@ from enum import Enum
 
 class CF(Enum):
 
-    TAXA_SUBSCRICAO = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00005454545455)
+    TAXA_SUBSCRICAO_GOV = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00003635454545)
+    # TAXA_SUBSCRICAO_GOV = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00001817727273)
+
+    TAXA_SUBSCRICAO_USUARIO = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00007270909091)
+
     TAXA_DESCONTO = ('Taxa de Desconto', '%', 0.1)
 
     def __init__(self, descricao, unidade_medida, valor):

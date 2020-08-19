@@ -7,7 +7,21 @@ class NPV:
 
     def __init__(self, municipio):
         self.municipio = municipio
-        self.assinaturas_moveis = np.zeros(self.municipio.tempo_analise)
+
+        # 2608
+        self.assinaturas_gov = np.zeros(self.municipio.tempo_analise)
+
+        # 2608
+        self.assinaturas_usuarios = np.zeros(self.municipio.tempo_analise)
+
+        # 2608
+        self.income = np.zeros(self.municipio.tempo_analise)
+
+        # 2608
+        self.arpu = np.zeros(self.municipio.tempo_analise)
+
+        # 2608
+        self.si = np.zeros(self.municipio.tempo_analise)
 
         self.tco = dict(Macro=np.zeros(self.municipio.tempo_analise), Hetnet=np.zeros(self.municipio.tempo_analise))
         self.cf = dict(Macro=np.zeros(self.municipio.tempo_analise), Hetnet=np.zeros(self.municipio.tempo_analise))
@@ -15,16 +29,41 @@ class NPV:
 
         self.payback = dict(Macro=0.0, Hetnet=0.0)
 
-    def get_cf(self):
+    # 2608
+    def get_income(self):
         for ag in self.municipio.aglomerados:
-            # Calcula o quantitativo de Termianais de Dados
-            self.assinaturas_moveis += ag.total_terminais
-            print()
+            # Calcula o quantitativo de Termianais Gov
+            self.assinaturas_gov += ag.total_terminais
 
-        arreacadacao = self.assinaturas_moveis * CF.TAXA_SUBSCRICAO.valor * 12.0
-        print('Valor de Arrecadação: ')
-        print(arreacadacao)
-        print(arreacadacao.sum())
+            # Calcula o quantitativo de Termianais de Usuários
+            self.assinaturas_usuarios += ag.densidade_usuarios * ag.area_aglomerado
+
+        # 12.0 = 12 meses
+        # 0.56 = 56% da população é considerada ativa
+        self.income = self.assinaturas_usuarios * CF.TAXA_SUBSCRICAO_USUARIO.valor * 12.0 * 0.56
+        self.income += self.assinaturas_gov * CF.TAXA_SUBSCRICAO_GOV.valor * 12.0
+        self.income *= 0.5
+
+    # 2608
+    def get_arpu(self):
+        self.arpu = self.income/(self.assinaturas_usuarios + self.assinaturas_gov)
+
+    # 2608
+    def get_si(self):
+        # 0.00095 Renda Media Per Capita
+        temp = self.arpu/(0.00095)
+        self.si = temp
+
+    def get_cf(self):
+        #for ag in self.municipio.aglomerados:
+        #    # Calcula o quantitativo de Termianais de Dados
+        #    self.assinaturas_gov += ag.total_terminais
+        #    print()
+
+        # arreacadacao = self.assinaturas_gov * CF.TAXA_SUBSCRICAO_GOV.valor * 12.0
+        # print('Valor de Arrecadação: ')
+        # print(arreacadacao)
+        # print(arreacadacao.sum())
 
         capex = np.zeros(self.municipio.tempo_analise)
         opex = np.zeros(self.municipio.tempo_analise)
@@ -48,7 +87,7 @@ class NPV:
             opex += ag.opex_macro['Transporte']['aluguel']
             opex += ag.opex_macro['Transporte']['falhas']
 
-        self.cf['Macro'] = arreacadacao - (capex + opex)
+        self.cf['Macro'] = self.income - (capex + opex)
         self.tco['Macro'] += (capex + opex)
 
         capex = np.zeros(self.municipio.tempo_analise)
@@ -72,7 +111,7 @@ class NPV:
             opex += ag.opex_hetnet['Transporte']['aluguel']
             opex += ag.opex_hetnet['Transporte']['falhas']
 
-        self.cf['Hetnet'] = arreacadacao - (capex + opex)
+        self.cf['Hetnet'] = self.income - (capex + opex)
         self.tco['Hetnet'] += (capex + opex)
 
         print('TCO:')
@@ -90,8 +129,6 @@ class NPV:
         print('CF:')
         print('Hetnet:')
         print(self.cf['Hetnet'])
-
-
 
     def get_npv(self):
         print('NPV')

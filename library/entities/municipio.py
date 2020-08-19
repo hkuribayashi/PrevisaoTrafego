@@ -5,14 +5,16 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from library.entities.central_office import CentralOffice
+from library.config.param import PARAM
 
 
 class Municipio():
 
-    def __init__(self, id_, total_alunos, percentual_alunos_ead, total_docentes, percentual_pop_ativa,
+    def __init__(self, id_, nome, total_alunos, percentual_alunos_ead, total_docentes, percentual_pop_ativa,
                  total_servidores_publicos, total_servidores_publicos_saude, total_veiculos, tempo_analise,
                  tempo_viagem, tempo_medio_disponibilidade):
         self.id = id_
+        self.nome = nome
         self.total_alunos = total_alunos
         self.percentual_alunos_ead = percentual_alunos_ead
         self.total_docentes = total_docentes
@@ -149,7 +151,7 @@ class Municipio():
         print('Quantidade de SW de Agregação MW:')
         print(self.sw_agregacao)
 
-    def gera_graficos_municipio(self):
+    def gera_graficos_municipio(self, cenario):
         time = np.arange(self.tempo_analise)
         demanda_trafego_total = np.zeros(self.tempo_analise)
         demanda_usuarios_total = np.zeros(self.tempo_analise)
@@ -187,64 +189,73 @@ class Municipio():
             capacidade_atendimento_rede_acesso_femto += ag.capacidade_atendimento_rede_acesso['implantacao_hetnet']
             volume_trafego_rede_acesso_total += ag.demanda_trafego
 
-            plt.title('Demanda de Tráfego por Área x Densidade de Usuários - Aglomerado {}'.format(ag.id))
-            plt.plot(ag.densidade_usuarios, ag.demanda_trafego_por_area, '-*')
-            plt.xlabel('Densidade de Usuários (usuários/km2)')
-            plt.ylabel('Demanda de Tráfego por Área [Mbps/km2]')
-            plt.grid(linestyle=':')
+            # plt.title('Demanda de Tráfego por Área x Densidade de Usuários - Aglomerado {}'.format(ag.id))
+            # plt.plot(ag.densidade_usuarios, ag.demanda_trafego_por_area, '-*')
+            # plt.xlabel('Densidade de Usuários (usuários/km2)')
+            # plt.ylabel('Traffic Demand [Mbps/km2]')
+            # plt.grid(linestyle=':')
 
             plt.figure()
-            plt.title('Demanda de Total de Tráfego por Área: Aglomerado {}'.format(ag.id))
-            plt.plot(time, ag.demanda_trafego_por_area, '-*', label='Demada de Tráfego Total')
-            plt.plot(time, ag.demanda_usuarios, '-o', label='Demanda Usuários')
-            plt.plot(time, ag.demanda_aplicacoes, '-.', label='Demanda Aplicações IoT/M2M')
-            plt.xlabel('Período de Análise (t)')
-            plt.ylabel('Demanda de Tráfego por Área [Mbps/km2]')
+            plt.title('{}'.format(ag.tipo_aglomerado))
+            plt.plot(time, ag.demanda_trafego_por_area, '-*', label='Total Traffic Demand')
+            plt.plot(time, ag.demanda_usuarios, '-o', label='User Traffic Demand')
+            plt.plot(time, ag.demanda_aplicacoes, '-.', label='Gov. Traffic Demand')
+            plt.xlabel('Units of Time (t)')
+            plt.ylabel('Traffic Demand per Area [Mbps/km2]')
             plt.legend(loc='best')
             plt.grid(linestyle=':')
-            plt.figure()
 
-            plt.title('Capacidade de Atendimento Rede de Acesso - Aglomerado {}'.format(ag.id))
-            plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*',
-                     label='Capacidade Implantação Macro Only [Mbps]')
-            plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o',
-                     label='Capacidade Implantação HetNet [Mbps]')
-            plt.xlabel('Volume de Tráfego de Dados do Aglomerado [Mbps]')
-            plt.ylabel('Capacidade de Atendimento [Mbps]')
+            plt.savefig('{}DT-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, 'Simples',ag.id),
+                        dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+            plt.close()
+
+            # plt.figure()
+            # plt.title('Capacidade de Atendimento Rede de Acesso - Aglomerado {}'.format(ag.id))
+            # plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*',
+                     # label='Capacidade Implantação Macro Only [Mbps]')
+            # plt.plot(ag.demanda_trafego, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o',
+                     # label='Capacidade Implantação HetNet [Mbps]')
+            # plt.xlabel('Volume de Tráfego de Dados do Aglomerado [Mbps]')
+            # plt.ylabel('Capacidade de Atendimento [Mbps]')
+            # plt.grid(linestyle=':')
+            # plt.legend(loc='best')
+
+            plt.figure()
+            plt.title('{}: {}'.format(ag.tipo_aglomerado, cenario))
+            plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*', label='Macro Only')
+            plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o', label='HetNet')
+            plt.plot(time, ag.demanda_trafego, '-.', label='Traffic Demand0')
+            plt.xlabel('Units of Time (t)')
+            plt.ylabel('Service Capacity [Mbps]')
             plt.grid(linestyle=':')
             plt.legend(loc='best')
-            plt.figure()
 
-            plt.title('Capacidade de Atendimento Rede de Acesso - Aglomerado {}'.format(ag.id))
-            plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*',
-                     label='Capacidade Implantação Macro Only [Mbps]')
-            plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o',
-                     label='Capacidade Implantação HetNet [Mbps]')
-            plt.plot(time, ag.demanda_trafego, '-.', label='Volume de Tráfego [Mbps]')
-            plt.xlabel('Período de Análise (t)')
-            plt.ylabel('Capacidade de Atendimento [Mbps]')
-            plt.grid(linestyle=':')
-            plt.legend(loc='best')
-            plt.figure()
+            plt.savefig('{}DT-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, 'Capacidade', ag.id), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+            plt.close()
 
-        plt.title('Demanda de Total de Tráfego por Área  do Município {}'.format(self.id))
-        plt.plot(time, demanda_trafego_total, '-*', label='Demanda Total')
-        plt.plot(time, demanda_usuarios_total, '-o', label='Demanda Usuários')
-        plt.plot(time, demanda_aplicacoes_total_area, '-.', label='Demanda Aplicações IoT/M2M')
-        plt.xlabel('Período de Análise (t)')
-        plt.ylabel('Demanda de Tráfego por Área [Mbps/km2]')
+        plt.figure()
+        plt.title('{}: Traffic Demand'.format(self.nome))
+        plt.plot(time, demanda_trafego_total, '-*', label='Total Traffic Demmand')
+        plt.plot(time, demanda_usuarios_total, '-o', label='User Traffic Demmand')
+        plt.plot(time, demanda_aplicacoes_total_area, '-.', label='Gov. Traffic Demmand')
+        plt.xlabel('Units of Time (t)')
+        plt.ylabel('Traffic Demand per Area [Mbps/km2]')
         plt.grid(linestyle=':')
         plt.legend(loc='upper left')
-        plt.figure()
 
-        plt.title('Capacidade de Atendimento Rede de Acesso - Municipio {}'.format(self.id))
-        plt.plot(time, capacidade_atendimento_rede_acesso_macro, '-*',
-                 label='Capacidade Implantação Macro Only [Mbps]')
-        plt.plot(time, capacidade_atendimento_rede_acesso_femto, '-o',
-                 label='Capacidade Implantação HetNet [Mbps]')
-        plt.plot(time, volume_trafego_rede_acesso_total, '-.', label='Volume de Tráfego [Mbps]')
-        plt.xlabel('Período de Análise (t)')
-        plt.ylabel('Capacidade de Atendimento [Mbps]')
+        plt.savefig('{}DT-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, 'acumulado', cenario), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+        plt.close()
+
+        plt.figure()
+        # plt.title('Capacidade de Atendimento Rede de Acesso - Municipio {}'.format(cenario))
+        plt.title('{}: {}'.format(self.nome, cenario))
+        plt.plot(time, capacidade_atendimento_rede_acesso_macro, '-*', label='Macro Only')
+        plt.plot(time, capacidade_atendimento_rede_acesso_femto, '-o', label='HetNet')
+        plt.plot(time, volume_trafego_rede_acesso_total, '-.', label='Total Traffic Demand')
+        plt.xlabel('Units of Time (t)')
+        plt.ylabel('Service Capacity [Mbps]')
         plt.grid(linestyle=':')
         plt.legend(loc='best')
-        plt.show()
+
+        plt.savefig('{}DT-{}-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, 'capacidade-municipio', cenario), dpi = PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches = 'tight')
+        plt.close()

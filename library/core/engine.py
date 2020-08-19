@@ -22,6 +22,8 @@ class Engine:
             municipios[key].calcula_dimensionamento_rede_acesso()
             municipios[key].calcula_dimensionamento_rede_transporte()
 
+            municipios[key].gera_graficos_municipio(key)
+
             # Calcula TCO e NPV para cada cenário
             self.tco_radio[key] = TcoRadio(municipios[key])
             self.tco_transporte[key] = TcoTransporte(municipios[key])
@@ -34,6 +36,12 @@ class Engine:
             self.tco_transporte[key].get_tco()
 
         for key in self.municipios:
+            # Calculo a Receita da Rede
+            self.npv[key].get_income()
+            self.npv[key].get_arpu()
+            self.npv[key].get_si()
+
+        for key in self.municipios:
             # Calculo o Fluxo de Caixa
             self.npv[key].get_cf()
 
@@ -42,17 +50,17 @@ class Engine:
             self.npv[key].get_npv()
 
     def get_graficos(self):
-        # self.__get_graficos_municipio()
+        self.__get_graficos_municipio()
         self.__get_graficos_aglomerados()
 
     def __get_graficos_municipio(self):
         # Gera gráficos de TCO
-        tco_municipio(self.npv)
+        # tco_municipio(self.npv)
 
         # Gera gráficos de Fluxo de Caixa
-        fluxo_caixa_municipio(self.npv)
+        #fluxo_caixa_municipio(self.npv)
 
-        # Gera gráficos de NPV
+        # Gera gráfico de NPV
         npv_municipio(self.npv)
 
     def __get_graficos_aglomerados(self):

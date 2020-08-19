@@ -287,7 +287,7 @@ def evolucao_tco(cenarios, tipo_grafico):
     rotulos = np.arange(tempo_analise)
     legenda = list()
 
-    posicao_macro = np.arange(0, 90, step=6)
+    posicao_macro = np.arange(0, tempo_analise*6, step=6)
     posicao_hetnet = posicao_macro + 2.3
     posicao_rotulos = (posicao_macro + posicao_hetnet)/2
 
@@ -355,7 +355,10 @@ def fluxo_caixa_municipio(municipios):
     names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
     legenda = list()
 
-    posicao_macro = np.arange(0, 90, step=6)
+    chave_primeiro = list(municipios)[0]
+    tempo_analise = municipios[chave_primeiro].tempo_analise
+
+    posicao_macro = np.arange(0, tempo_analise*6, step=6)
     posicao_hetnet = posicao_macro + 2.3
     posicao_legenda = (posicao_macro + posicao_hetnet)/2
 
@@ -429,7 +432,7 @@ def npv_municipio(municipios):
     plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
     plt.legend(legenda, loc='best')
     plt.ylabel('NPV (Moneraty Units $)')
-    plt.ylim(0, 90.0)
+    #plt.ylim(0, 18.0)
 
     plt.savefig('{}NPV.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
     plt.close()
