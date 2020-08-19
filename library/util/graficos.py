@@ -432,6 +432,8 @@ def npv_municipio(municipios):
     plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
     plt.legend(legenda, loc='best')
     plt.ylabel('NPV (Moneraty Units $)')
+
+    # 2806
     #plt.ylim(0, 18.0)
 
     plt.savefig('{}NPV.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')

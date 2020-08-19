@@ -2,10 +2,11 @@ from enum import Enum
 
 
 class CF(Enum):
-
+    # 2806
     TAXA_SUBSCRICAO_GOV = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00003635454545)
     # TAXA_SUBSCRICAO_GOV = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00001817727273)
 
+    # 2806
     TAXA_SUBSCRICAO_USUARIO = ('Taxa Mensal de Subscrição de Terminal', '$/terminal', 0.00007270909091)
 
     TAXA_DESCONTO = ('Taxa de Desconto', '%', 0.1)
