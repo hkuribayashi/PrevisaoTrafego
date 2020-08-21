@@ -87,6 +87,17 @@ class NPV:
             opex += ag.opex_macro['Transporte']['aluguel']
             opex += ag.opex_macro['Transporte']['falhas']
 
+        # 2806
+        capex += self.municipio.capex_co['infraestrutura']
+        capex += self.municipio.capex_co['equipamentos']
+        capex += self.municipio.capex_co['instalacao']
+
+        # 2806
+        opex += self.municipio.opex_co['energia']
+        opex += self.municipio.opex_co['manutencao']
+        opex += self.municipio.opex_co['aluguel']
+        opex += self.municipio.opex_co['falhas']
+
         self.cf['Macro'] = self.income - (capex + opex)
         self.tco['Macro'] += (capex + opex)
 
@@ -110,6 +121,17 @@ class NPV:
             opex += ag.opex_hetnet['Transporte']['energia']
             opex += ag.opex_hetnet['Transporte']['aluguel']
             opex += ag.opex_hetnet['Transporte']['falhas']
+
+        # 2806
+        capex += self.municipio.capex_co['infraestrutura']
+        capex += self.municipio.capex_co['equipamentos']
+        capex += self.municipio.capex_co['instalacao']
+
+        # 2806
+        opex += self.municipio.opex_co['energia']
+        opex += self.municipio.opex_co['manutencao']
+        opex += self.municipio.opex_co['aluguel']
+        opex += self.municipio.opex_co['falhas']
 
         self.cf['Hetnet'] = self.income - (capex + opex)
         self.tco['Hetnet'] += (capex + opex)

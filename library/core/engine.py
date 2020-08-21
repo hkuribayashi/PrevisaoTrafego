@@ -1,8 +1,8 @@
 from library.custos.npv import NPV
+from library.custos.tco_co import TcoCO
 from library.custos.tco_radio import TcoRadio
 from library.custos.tco_transporte import TcoTransporte
-from library.util.graficos import tco_simples, composicao_tco, composicao_tco_porcentagem, evolucao_tco, npv_municipio, \
-    tco_municipio, fluxo_caixa_municipio
+from library.util.graficos import tco_simples, composicao_tco, composicao_tco_porcentagem, evolucao_tco, npv_municipio
 from library.util.util import get_cenarios_alternativos
 
 
@@ -13,6 +13,10 @@ class Engine:
 
         self.tco_radio = dict()
         self.tco_transporte = dict()
+
+        # 2806
+        self.tco_co = dict()
+
         self.npv = dict()
 
         for key in municipios:
@@ -22,11 +26,17 @@ class Engine:
             municipios[key].calcula_dimensionamento_rede_acesso()
             municipios[key].calcula_dimensionamento_rede_transporte()
 
+            # 2806
+            municipios[key].calcula_dimensionamento_centraloffice()
             municipios[key].gera_graficos_municipio(key)
 
             # Calcula TCO e NPV para cada cenário
             self.tco_radio[key] = TcoRadio(municipios[key])
             self.tco_transporte[key] = TcoTransporte(municipios[key])
+
+            # 2806
+            self.tco_co[key] = TcoCO(municipios[key])
+
             self.npv[key] = NPV(municipios[key])
 
     def run(self):
@@ -34,6 +44,9 @@ class Engine:
             # Calcula o TCO de Rádio e Transporte
             self.tco_radio[key].get_tco()
             self.tco_transporte[key].get_tco()
+
+            # 2806
+            self.tco_co[key].get_tco()
 
         for key in self.municipios:
             # Calculo a Receita da Rede

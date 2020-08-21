@@ -31,6 +31,10 @@ class CAPEX(Enum):
     FEMTO_45G = ('Femto Base Station 4.5G', '$/unidade', 0.0557)
     FEMTO_5G = ('Femto Base Station 5G', '$/unidade', 0.0654)
 
+    # CO
+    FS = ('Servidor Físico', '$/unidade', 0.4545)
+    UDC = ('Micro Datacener', '$/unidade', 0.3)
+
     # Tempo de Atualização de HW por tipo de BS
     TEMPO_ATUALIZACAO_MACRO = ('Tempo de Atualização de Macro BS', 'horas', 10.0)
     TEMPO_ATUALIZACAO_MICRO = ('Tempo de Atualização de Micro BS', 'horas', 10.0)

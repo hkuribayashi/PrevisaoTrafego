@@ -43,7 +43,13 @@ class Municipio():
         self.antenas_pt_pt = np.zeros(tempo_analise)
 
         self.co = CentralOffice()
-
+        self.capex_co = dict(infraestrutura=np.zeros(self.tempo_analise),
+                             equipamentos=np.zeros(self.tempo_analise),
+                             instalacao=np.zeros(self.tempo_analise))
+        self.opex_co = dict(energia=np.zeros(self.tempo_analise),
+                            manutencao=np.zeros(self.tempo_analise),
+                            aluguel=np.zeros(self.tempo_analise),
+                            falhas=np.zeros(self.tempo_analise))
 
     def adicionar_aglomerado(self, novo_aglomerado):
         self.aglomerados.append(novo_aglomerado)
@@ -109,12 +115,14 @@ class Municipio():
             self.sw_carrier_mw_implantada['implantacao_macro'] += ag.qtd_sw_carrier_mw_macro_only
             self.sw_carrier_mw_implantada['implantacao_hetnet'] += ag.qtd_sw_carrier_mw_hetnet
 
+    # 2806
     def calcula_dimensionamento_centraloffice(self):
+        capacidade_atendimento_vs = 800
         print('Dimensionamento de Central Office')
         demanda_trafego_total = np.zeros(self.tempo_analise)
 
         # Calcula a quantidade de servidores de rede pra rodar as funções de SDN
-        servidores_implantados_por_ano_datacenter = np.zeros(self.tempo_analise)
+        vs_por_ano = np.zeros(self.tempo_analise)
         for ag in self.aglomerados:
             demanda_trafego_total += ag.demanda_trafego_por_area * ag.area_aglomerado
 
@@ -122,12 +130,29 @@ class Municipio():
         # Assumindo a capacidade de atendimento de 800 Mbps por servidor
         for ano, demanda_ano in enumerate(demanda_trafego_total):
             if ano == 0:
-                servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano/800)
+                vs_por_ano[ano] = math.ceil(demanda_ano/capacidade_atendimento_vs)
             else:
-                servidores_implantados_por_ano_datacenter[ano] = math.ceil(demanda_ano/800) \
-                                                                 - sum(servidores_implantados_por_ano_datacenter[:ano])
-        print('Quantidade de Servidores por Ano')
-        print(servidores_implantados_por_ano_datacenter)
+                vs_por_ano[ano] = math.ceil(demanda_ano/capacidade_atendimento_vs) \
+                                                                 - sum(vs_por_ano[:ano])
+
+        # 2806
+        print('Quantidade de Servidores Virtuais por Ano: ')
+        print(vs_por_ano)
+
+        # 2806
+        n_vs_por_fs = 10
+        soma = 0
+        fs_por_ano = np.zeros(self.tempo_analise)
+        for t, n_vs in enumerate(vs_por_ano):
+            soma += n_vs
+            if t == 0:
+                fs_por_ano[t] = 1
+            elif soma % n_vs_por_fs == 0:
+                fs_por_ano[t] = 1
+
+        # 2806
+        print('Quantidade de Servidores Físicos por Ano:')
+        print(fs_por_ano)
 
         '''
         Calcula a quantidade de switches de agregação na opção de transporte por microwave. 
@@ -150,6 +175,34 @@ class Municipio():
 
         print('Quantidade de SW de Agregação MW:')
         print(self.sw_agregacao)
+
+        '''
+        Cada servidor físico ocupa cerca de 2U.
+        Cada switch ocupa 1U
+        Cada uDC possui espaco para 42U, e desta forma o total de uDC no CO fica proporcional ao número de equipamentos 
+        '''
+        espaco_fs = 2
+        espaco_as = 1
+        espaco_total_uDC = 42
+
+        espaco_uDC = fs_por_ano * espaco_fs + self.sw_agregacao * espaco_as
+
+        soma_udc = 0
+        udc_por_ano = np.zeros(self.tempo_analise)
+        for t, espaco_ano in enumerate(espaco_uDC):
+            soma_udc += espaco_ano
+            if t == 0:
+                udc_por_ano[t] = 1
+            elif soma_udc % espaco_total_uDC == 0:
+                udc_por_ano[t] = 1
+
+        print('Quantidade de uDC no CO:')
+        print(udc_por_ano)
+
+        self.co.qtd_as = self.sw_agregacao
+        self.co.qtd_fs = fs_por_ano
+        self.co.qtd_vs = vs_por_ano
+        self.co.qtd_udc = udc_por_ano
 
     def gera_graficos_municipio(self, cenario):
         time = np.arange(self.tempo_analise)
