@@ -376,29 +376,6 @@ def composicao_tco_porcentagem_barra(cenarios, tipo_grafico):
         opex_macro = cenarios[key].opex_macro[tipo_grafico]
         opex_hetnet = cenarios[key].opex_hetnet[tipo_grafico]
 
-        '''
-        infraestrutura.append(cenarios[key].capex_radio_macro['infraestrutura'].sum())
-        infraestrutura.append(cenarios[key].capex_radio_hetnet['infraestrutura'].sum())
-
-        equipamentos.append(cenarios[key].capex_radio_macro['equipamentos'].sum())
-        equipamentos.append(cenarios[key].capex_radio_hetnet['equipamentos'].sum())
-
-        instalacao.append(cenarios[key].capex_radio_macro['instalacao'].sum())
-        instalacao.append(cenarios[key].capex_radio_hetnet['instalacao'].sum())
-
-        energia.append(cenarios[key].opex_radio_macro['energia'].sum())
-        energia.append(cenarios[key].opex_radio_hetnet['energia'].sum())
-
-        manutencao.append(cenarios[key].opex_radio_macro['manutencao'].sum())
-        manutencao.append(cenarios[key].opex_radio_hetnet['manutencao'].sum())
-
-        aluguel.append(cenarios[key].opex_radio_macro['aluguel'].sum())
-        aluguel.append(cenarios[key].opex_radio_hetnet['aluguel'].sum())
-
-        falhas.append(cenarios[key].opex_radio_macro['falhas'].sum())
-        falhas.append(cenarios[key].opex_radio_hetnet['falhas'].sum())
-        '''
-
         infraestrutura.append(capex_macro['infraestrutura'].sum())
         infraestrutura.append(capex_hetnet['infraestrutura'].sum())
 
@@ -497,9 +474,11 @@ def fluxo_caixa_municipio(municipios):
     legenda = list()
 
     chave_primeiro = list(municipios)[0]
-    tempo_analise = municipios[chave_primeiro].tempo_analise
 
-    posicao_macro = np.arange(0, tempo_analise*6, step=6)
+    # 2806
+    tempo_analise = municipios[chave_primeiro].municipio.tempo_analise
+
+    posicao_macro = np.arange(0, tempo_analise * 6, step=6)
     posicao_hetnet = posicao_macro + 2.3
     posicao_legenda = (posicao_macro + posicao_hetnet)/2
 
@@ -529,7 +508,7 @@ def fluxo_caixa_municipio(municipios):
         plt.xticks(posicao_legenda, names)
         plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
         plt.legend(legenda, loc='best')
-        plt.ylabel('Monetary Units $')
+        plt.ylabel('CF - Monetary Units ($)')
         plt.xlabel('Units od Time (t)')
 
         plt.savefig('{}CF-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, m), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
@@ -621,3 +600,46 @@ def tco_municipio(municipios):
 
     plt.savefig('{}TCO.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
     plt.close()
+
+
+def tco_municipio(municipios):
+
+    global legenda
+
+    # Inicialização
+    names = list()
+    valores_macro = list()
+    valores_hetnet = list()
+
+    # Visual do Gráfico
+    bar_width = 1.5
+    line_width = 0.6
+
+    # Cores
+    a, b = [plt.cm.Blues, plt.cm.Reds]
+
+    # Posicao das Barras
+    posicao_macro = np.array([0.0, 3.6, 7.2, 10.8])
+    posicao_hetnet = np.array([1.6, 5.2, 8.8, 12.4])
+    posicao_legenda = (posicao_macro + posicao_hetnet)/2
+
+    plt.figure()
+
+    for m in municipios:
+        valores_macro.append(municipios[m].tco['Macro'].sum())
+        valores_hetnet.append(municipios[m].tco['Hetnet'].sum())
+        legenda = municipios[m].municipio.tipos_rede_radio
+        names.append(m)
+
+    plt.bar(posicao_macro, valores_macro, color=a(0.6), width=bar_width, zorder=3, linewidth=line_width, edgecolor='black')
+    plt.bar(posicao_hetnet, valores_hetnet, color=b(0.6), width=bar_width, zorder=3, linewidth=line_width, edgecolor='black')
+
+    # Custom X axis
+    plt.xticks(posicao_legenda, names)
+    plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+    plt.legend(legenda, loc='best')
+    plt.ylabel('TCO (Unidades Monetárias $)')
+
+    plt.savefig('{}TCO.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
+

@@ -38,8 +38,8 @@ class TcoCO(TCO):
 
             if equipamentos > 0:
                 custo_hardware_ajustado = util.atualizacao_linear(equipamentos,
-                                                              CAPEX.TAXA_REAJUSTE.valor,
-                                                              self.municipio.tempo_analise)
+                                                                  CAPEX.TAXA_REAJUSTE.valor,
+                                                                  self.municipio.tempo_analise)
 
                 capex_co_equipamentos[t] += 0.5 * custo_hardware_ajustado[t]
 
