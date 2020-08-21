@@ -349,6 +349,147 @@ def evolucao_tco(cenarios, tipo_grafico):
         plt.close()
 
 
+def composicao_tco_porcentagem_barra(cenarios, tipo_grafico):
+    global nome_aglomerado, id_aglomerado
+
+    infraestrutura = list()
+    equipamentos = list()
+    instalacao = list()
+    energia = list()
+    manutencao = list()
+    aluguel = list()
+    falhas = list()
+
+    rotulos = list()
+
+    # Subgrupos
+    if tipo_grafico == 'Radio':
+        legenda = ['Equip.', 'Inst.', 'Infra.', 'Manut.', 'Aluguel', 'Falhas', 'Energ.']
+        label = 'RAN'
+    else:
+        legenda = ['Equip.', 'Inst.', 'Infra.', 'Manut.', 'Espec.', 'Falhas', 'Energ.']
+        label = 'Backhaul'
+
+    for key in cenarios:
+        capex_macro = cenarios[key].capex_macro[tipo_grafico]
+        capex_hetnet = cenarios[key].capex_hetnet[tipo_grafico]
+        opex_macro = cenarios[key].opex_macro[tipo_grafico]
+        opex_hetnet = cenarios[key].opex_hetnet[tipo_grafico]
+
+        '''
+        infraestrutura.append(cenarios[key].capex_radio_macro['infraestrutura'].sum())
+        infraestrutura.append(cenarios[key].capex_radio_hetnet['infraestrutura'].sum())
+
+        equipamentos.append(cenarios[key].capex_radio_macro['equipamentos'].sum())
+        equipamentos.append(cenarios[key].capex_radio_hetnet['equipamentos'].sum())
+
+        instalacao.append(cenarios[key].capex_radio_macro['instalacao'].sum())
+        instalacao.append(cenarios[key].capex_radio_hetnet['instalacao'].sum())
+
+        energia.append(cenarios[key].opex_radio_macro['energia'].sum())
+        energia.append(cenarios[key].opex_radio_hetnet['energia'].sum())
+
+        manutencao.append(cenarios[key].opex_radio_macro['manutencao'].sum())
+        manutencao.append(cenarios[key].opex_radio_hetnet['manutencao'].sum())
+
+        aluguel.append(cenarios[key].opex_radio_macro['aluguel'].sum())
+        aluguel.append(cenarios[key].opex_radio_hetnet['aluguel'].sum())
+
+        falhas.append(cenarios[key].opex_radio_macro['falhas'].sum())
+        falhas.append(cenarios[key].opex_radio_hetnet['falhas'].sum())
+        '''
+
+        infraestrutura.append(capex_macro['infraestrutura'].sum())
+        infraestrutura.append(capex_hetnet['infraestrutura'].sum())
+
+        equipamentos.append(capex_macro['equipamentos'].sum())
+        equipamentos.append(capex_hetnet['equipamentos'].sum())
+
+        instalacao.append(capex_macro['instalacao'].sum())
+        instalacao.append(capex_hetnet['instalacao'].sum())
+
+        energia.append(opex_macro['energia'].sum())
+        energia.append(opex_hetnet['energia'].sum())
+
+        manutencao.append(opex_macro['manutencao'].sum())
+        manutencao.append(opex_hetnet['manutencao'].sum())
+
+        aluguel.append(opex_macro['aluguel'].sum())
+        aluguel.append(opex_hetnet['aluguel'].sum())
+
+        falhas.append(opex_macro['falhas'].sum())
+        falhas.append(opex_hetnet['falhas'].sum())
+
+        rotulos.append('Macro-C' + str(cenarios[key].id))
+        rotulos.append('Hetnet-C' + str(cenarios[key].id))
+
+        if cenarios[key].tipo_cenario == 'Original':
+            id_aglomerado = cenarios[key].id
+
+    for index in range(len(infraestrutura)):
+        soma = infraestrutura[index] + equipamentos[index] + instalacao[index] + energia[index] + \
+               manutencao[index] + aluguel[index] + falhas[index]
+        infraestrutura[index] = (infraestrutura[index] / soma) * 100
+        equipamentos[index] = (equipamentos[index] / soma) * 100
+        instalacao[index] = (instalacao[index] / soma) * 100
+        energia[index] = (energia[index] / soma) * 100
+        manutencao[index] = (manutencao[index] / soma) * 100
+        aluguel[index] = (aluguel[index] / soma) * 100
+        falhas[index] = (falhas[index] / soma) * 100
+
+    # Posição das Barras no eixo X
+    posicao = list()
+    if len(cenarios) <= 2:
+        separacao = 2.5
+        plt.figure(figsize=(8.0, 5.5))
+        bar_width = 1.0
+    else:
+        separacao = 3.8
+        plt.figure(figsize=(9.0, 5.5))
+        bar_width = 2.0
+
+    for i in range(2 * len(cenarios)):
+        posicao.append(i * separacao)
+
+    line_width = 0.5
+
+    plt.bar(posicao, infraestrutura, color='#4f82bd', edgecolor='black', width=bar_width, zorder=3,
+            linewidth=line_width)
+    plt.bar(posicao, equipamentos, bottom=infraestrutura, color='#cf4d4f', edgecolor='black', width=bar_width,
+            zorder=3,
+            linewidth=line_width)
+    plt.bar(posicao, instalacao, bottom=[i + j for i, j in zip(infraestrutura, equipamentos)], color='#88a54f',
+            edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+    plt.bar(posicao, energia, bottom=[i + j + k for i, j, k in zip(infraestrutura, equipamentos, instalacao)],
+            color='#72578f', edgecolor='black', width=bar_width, zorder=3, linewidth=line_width)
+    plt.bar(posicao, manutencao,
+            bottom=[i + j + k + l for i, j, k, l in zip(infraestrutura, equipamentos, instalacao, energia)],
+            color='#4298ae',
+            edgecolor='black',
+            width=bar_width, zorder=3, linewidth=line_width)
+    plt.bar(posicao, aluguel,
+            bottom=[i + j + k + l + m for i, j, k, l, m in
+                    zip(infraestrutura, equipamentos, instalacao, energia, manutencao)],
+            color='#da8436',
+            edgecolor='black',
+            width=bar_width, zorder=3, linewidth=line_width)
+    plt.bar(posicao, falhas,
+            bottom=[i + j + k + l + m + n for i, j, k, l, m, n in
+                    zip(infraestrutura, equipamentos, instalacao, energia, manutencao, aluguel)],
+            color='#93a9cf',
+            edgecolor='black',
+            width=bar_width, zorder=3, linewidth=line_width)
+
+    plt.xticks(posicao, rotulos)
+    plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+    plt.legend(legenda, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=7)
+    plt.ylabel('Composição do TCO (%)')
+
+    plt.savefig('{}TCO-{}-Porcentagem-Barra-{}.eps'.format(PARAM.DIRETORIO_IMAGEM.valor, tipo_grafico, id_aglomerado),
+                dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
+
+
 def fluxo_caixa_municipio(municipios):
 
     # Legendas

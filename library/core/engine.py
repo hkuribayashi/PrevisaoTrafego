@@ -2,7 +2,8 @@ from library.custos.npv import NPV
 from library.custos.tco_co import TcoCO
 from library.custos.tco_radio import TcoRadio
 from library.custos.tco_transporte import TcoTransporte
-from library.util.graficos import tco_simples, composicao_tco, composicao_tco_porcentagem, evolucao_tco, npv_municipio
+from library.util.graficos import tco_simples, composicao_tco, composicao_tco_porcentagem, evolucao_tco, npv_municipio, \
+    composicao_tco_porcentagem_barra
 from library.util.util import get_cenarios_alternativos
 
 
@@ -86,6 +87,7 @@ class Engine:
             tco_simples(c, 'Radio')
             composicao_tco(c, 'Radio')
             composicao_tco_porcentagem(c, 'Radio')
+            composicao_tco_porcentagem_barra(c, 'Radio')
             evolucao_tco(c, 'Radio')
 
         # Gera Gráficos de Transporte para Todos os Aglomerados
@@ -93,4 +95,5 @@ class Engine:
             tco_simples(c, 'Transporte')
             composicao_tco(c, 'Transporte')
             composicao_tco_porcentagem(c, 'Transporte')
+            composicao_tco_porcentagem_barra(c, 'Transporte')
             evolucao_tco(c, 'Transporte')
