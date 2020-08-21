@@ -277,7 +277,7 @@ class Municipio():
             plt.title('{}: {}'.format(ag.tipo_aglomerado, cenario))
             plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_macro'], '-*', label='Macro Only')
             plt.plot(time, ag.capacidade_atendimento_rede_acesso['implantacao_hetnet'], '-o', label='HetNet')
-            plt.plot(time, ag.demanda_trafego, '-.', label='Traffic Demand0')
+            plt.plot(time, ag.demanda_trafego, '-.', label='Traffic Demand')
             plt.xlabel('Units of Time (t)')
             plt.ylabel('Service Capacity [Mbps]')
             plt.grid(linestyle=':')
