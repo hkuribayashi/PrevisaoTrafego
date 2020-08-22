@@ -389,8 +389,8 @@ class Aglomerado:
                         break
 
                 capacidade_atendimento_macro, capacidade_atendimento_femto = self.__capacidade_atendimento_rede_acesso()
-                demanda_expansao_macro = (self.demanda_trafego[ano] * 1.1) - capacidade_atendimento_macro
-                demanda_expansao_femto = (self.demanda_trafego[ano] * 1.1) - capacidade_atendimento_femto
+                demanda_expansao_macro = (self.demanda_trafego[ano] * 1.05) - capacidade_atendimento_macro
+                demanda_expansao_femto = (self.demanda_trafego[ano] * 1.05) - capacidade_atendimento_femto
 
                 if demanda_expansao_macro >= 0:
                     print('Estratégia de Implantação Macro Only: Necessidade de implantação de novas BSs')

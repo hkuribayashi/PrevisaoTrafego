@@ -3,7 +3,7 @@ from library.custos.tco_co import TcoCO
 from library.custos.tco_radio import TcoRadio
 from library.custos.tco_transporte import TcoTransporte
 from library.util.graficos import tco_simples, composicao_tco, composicao_tco_porcentagem, evolucao_tco, npv_municipio, \
-    composicao_tco_porcentagem_barra, tco_municipio, fluxo_caixa_municipio
+    composicao_tco_porcentagem_barra, tco_municipio, fluxo_caixa_municipio, dt_acumulada_municipios
 from library.util.util import get_cenarios_alternativos
 
 
@@ -39,6 +39,10 @@ class Engine:
             self.tco_co[key] = TcoCO(municipios[key])
 
             self.npv[key] = NPV(municipios[key])
+
+        # 2806
+        # Imprime comparação demanda de tráfego entre Cenários
+        dt_acumulada_municipios(municipios)
 
     def run(self):
         for key in self.municipios:

@@ -601,7 +601,7 @@ def tco_municipio(municipios):
     plt.savefig('{}TCO.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
     plt.close()
 
-
+'''
 def tco_municipio(municipios):
 
     global legenda
@@ -643,3 +643,60 @@ def tco_municipio(municipios):
     plt.savefig('{}TCO.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
     plt.close()
 
+'''
+
+# 2806
+def dt_acumulada_municipios(municipios):
+
+    c1 = municipios['BF+5GS']
+
+    time = np.arange(c1.tempo_analise)
+    ca_radio_macro_5gs = np.zeros(c1.tempo_analise)
+    ca_radio_hetnet_5gs = np.zeros(c1.tempo_analise)
+    volume_trafego_radio_total = np.zeros(c1.tempo_analise)
+
+    for ag in c1.aglomerados:
+        ca_radio_macro_5gs += ag.capacidade_atendimento_rede_acesso['implantacao_macro']
+        ca_radio_hetnet_5gs += ag.capacidade_atendimento_rede_acesso['implantacao_hetnet']
+        volume_trafego_radio_total += ag.demanda_trafego
+
+    c2 = municipios['GF+5GS']
+
+    for ag in c2.aglomerados:
+        ca_radio_macro_5gs += ag.capacidade_atendimento_rede_acesso['implantacao_macro']
+        ca_radio_hetnet_5gs += ag.capacidade_atendimento_rede_acesso['implantacao_hetnet']
+
+    ca_radio_macro_5gs = ca_radio_macro_5gs/2.0
+    ca_radio_hetnet_5gs = ca_radio_hetnet_5gs/2.0
+
+    c3 = municipios['BF+5GF']
+
+    ca_radio_macro_5gf = np.zeros(c1.tempo_analise)
+    ca_radio_hetnet_5gf = np.zeros(c1.tempo_analise)
+
+    for ag in c3.aglomerados:
+        ca_radio_macro_5gf += ag.capacidade_atendimento_rede_acesso['implantacao_macro']
+        ca_radio_hetnet_5gf += ag.capacidade_atendimento_rede_acesso['implantacao_hetnet']
+
+    c4 = municipios['GF+5GF']
+
+    for ag in c4.aglomerados:
+        ca_radio_macro_5gf += ag.capacidade_atendimento_rede_acesso['implantacao_macro']
+        ca_radio_hetnet_5gf += ag.capacidade_atendimento_rede_acesso['implantacao_hetnet']
+
+    ca_radio_macro_5gf = ca_radio_macro_5gf / 2.0
+    ca_radio_hetnet_5gf = ca_radio_hetnet_5gf / 2.0
+
+    plt.plot(time, ca_radio_macro_5gs, '-*', label='Macro Only 5GS', color='#1F77B4')
+    plt.plot(time, ca_radio_hetnet_5gs, '-o', label='HetNet 5GS', color='#FF8A00')
+    plt.plot(time, ca_radio_macro_5gf, '-p', label='Macro Only 5GF', color='r')
+    plt.plot(time, ca_radio_hetnet_5gf, '-d', label='HetNet 5GF', color='#9F6FC6')
+    plt.plot(time, volume_trafego_radio_total, '-.', label='Total Traffic Demand', color='g')
+
+    plt.xlabel('Units of Time (t)')
+    plt.ylabel('Service Capacity [Mbps]')
+    plt.grid(linestyle=':')
+    plt.legend(loc='best')
+
+    plt.savefig('{}DT.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()

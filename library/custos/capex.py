@@ -17,12 +17,12 @@ class CAPEX(Enum):
     ATUALIZACAO_FEMTO = ('Femto Base Station', '$/unidade', 0.0)
 
     # Depesas relacionadas à aquisição dos equipamentos (hardware)
-    MACRO_3G = ('Macro Base Station 3G', '$/unidade', 0.3454)
+    # MACRO_3G = ('Macro Base Station 3G', '$/unidade', 0.3454)
     MACRO_4G = ('Macro Base Station 4G', '$/unidade', 0.3718)
     MACRO_45G = ('Macro Base Station 4.5G', '$/unidade', 0.3718)
     MACRO_5G = ('Macro Base Station 5G', '$/unidade', 0.4636)
 
-    MICRO_3G = ('Micro Base Station 3G', '$/unidade', 0.1727)
+    # MICRO_3G = ('Micro Base Station 3G', '$/unidade', 0.1727)
     MICRO_4G = ('Micro Base Station 4G', '$/unidade', 0.1859)
     MICRO_45G = ('Micro Base Station 4.5G', '$/unidade', 0.1859)
     MICRO_5G = ('Micro Base Station 5G', '$/unidade', 0.2181)
