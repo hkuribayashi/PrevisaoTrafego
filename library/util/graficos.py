@@ -693,10 +693,76 @@ def dt_acumulada_municipios(municipios):
     plt.plot(time, ca_radio_hetnet_5gf, '-d', label='HetNet 5GF', color='#9F6FC6')
     plt.plot(time, volume_trafego_radio_total, '-.', label='Total Traffic Demand', color='g')
 
+    plt.title('Faro')
     plt.xlabel('Units of Time (t)')
     plt.ylabel('Service Capacity [Mbps]')
     plt.grid(linestyle=':')
     plt.legend(loc='best')
 
     plt.savefig('{}DT.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
+    plt.close()
+
+
+def grafico_eixo_duplo():
+    # Create some mock data
+    t1 = list()
+    t2 = list()
+
+    line_width = 0.6
+    names = ['Bias 0dB', 'Bias 10dB', 'Bias 30dB', 'SCF', 'AG-100', 'AG-200']
+
+    data1 = np.zeros(6)
+    data2 = np.zeros(6)
+
+    data1[0] = 39.98
+    data1[1] = 42.50
+    data1[2] = 52.52
+    data1[3] = 55.02
+    data1[4] = 60.00
+    data1[5] = 65.40
+
+    data2[0] = 27.411
+    data2[1] = 50.235
+    data2[2] = 92.470
+    data2[3] = 91.176
+    data2[4] = 91.294
+    data2[5] = 93.176
+
+    posicao_legenda = np.zeros(6)
+
+    for i in range(6):
+        t1.append(i * 2.0)
+        t2.append((i * 2.0) + 0.87)
+
+    posicao_legenda += np.array(t1)
+    posicao_legenda += np.array(t2)
+    posicao_legenda = posicao_legenda / 2
+
+    fig, ax1 = plt.subplots()
+    plt.grid(linestyle='-', linewidth=1, zorder=0, axis='y', color='#E5E5E5')
+
+    color = '#4f82bd'
+    ax1.set_ylabel('% Média de UEs com QoS atendidos', color=color, fontweight='bold')
+    lns1 = ax1.bar(t1, data1, color=color, edgecolor='black', zorder=3, linewidth=line_width, label='Aa')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.set_ylim(0, 75)
+    plt.xticks(posicao_legenda, names)
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+    color = '#cf4d4f'
+    ax2.set_ylabel('% Média BSs com UEs Associados', color=color, fontweight='bold')
+    lns2 = ax2.bar(t2, data2, color=color, edgecolor='black', zorder=3, linewidth=line_width, label='A')
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.set_ylim(0, 98)
+
+    hB, = plt.plot([1, 1], '#4f82bd')
+    hR, = plt.plot([1, 1], '#cf4d4f')
+    plt.legend((hB, hR), ('UEs com QoS atendidos', 'BSs com UEs Associados'), loc='upper left')
+    hB.set_visible(False)
+    hR.set_visible(False)
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+    plt.savefig('{}SI.eps'.format(PARAM.DIRETORIO_IMAGEM.valor), dpi=PARAM.RESOLUCAO_IMAGEM.valor, bbox_inches='tight')
     plt.close()
